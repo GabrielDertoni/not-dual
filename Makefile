@@ -2,14 +2,14 @@ CC := g++
 BIN := not_dual
 
 SRC := src
-SRCS := $(wildcard $(SRC)/*.c)
-OBJS := $(patsubst $(SRC)/%.c, build/obj/%.o, $(SRCS))
-LIBS := -lsfml-graphics -lsfml-window -lsfml-system
+SRCS := $(wildcard $(SRC)/*.cpp)
+OBJS := $(patsubst $(SRC)/%.cpp, build/obj/%.o, $(SRCS))
+LIBS := -lsfml-graphics -lsfml-window -lsfml-system -lpthread
 
 all: $(OBJS)
-	$(CC) -o $(BIN) $< $(LIBS)
+	$(CC) -o $(BIN) $^ $(LIBS)
 
-build/obj/%.o: src/%.c | build/obj
+build/obj/%.o: src/%.cpp | build/obj
 	$(CC) -c $< -o $@
 
 build/obj:
