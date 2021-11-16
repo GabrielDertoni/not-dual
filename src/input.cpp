@@ -1,24 +1,29 @@
-#include <pair>
+#include <utility>
 
 #include "../includes/input.h"
 
+using namespace Input;
 
-bool Sender::send(T val) {
+template <typename T>
+bool Sender<T>::send(T val) {
     pthread_mutex_lock(&shared->mutex);
     if (shared->isClosed) return false;
-    shared->buf.push_back(Slot(val, shared->rxCount));
+    shared->buf.push_back(Slot<T>(val, shared->rxCount));
     pthread_mutex_unlock(&shared->mutex);
 }
 
-Sender::~Sender() {
+
+template <typename T>
+Sender<T>::~Sender() {
     pthread_mutex_lock(&shared->mutex);
     shared->isClosed = true;
     pthread_mutex_unlock(&shared->mutex);
 }
 
-std::optional<T> Receiver::recv() {
+template <typename T>
+std::experimental::optional<T> Receiver<T>::recv() {
     pthread_mutex_lock(&shared->mutex);
-    if (shared->isClosed) return std::nullopt;
+    if (shared->isClosed) return std::experimental::nullopt;
     Slot<T> *slot = &shared->buf[next - shared->offset];
 
     T val = slot->val;
@@ -38,18 +43,19 @@ std::optional<T> Receiver::recv() {
     return val;
 }
 
-Shared::Shared(size_t rxCount) {
+template <typename T>
+Shared<T>::Shared(size_t rxCount) {
     pthread_mutex_init(&mutex, NULL);
     this->rxCount = rxCount;
     offset = 0;
     isClosed = false;
 }
 
-template <class T>
+template <typename T>
 std::pair<Sender<T>, Receiver<T>> channel() {
-    std::shared_ptr<Shared<T>> shared = std::make_shared(Shared(1));
-    Receiver rx(shared, 0);
-    Sender tx(shared);
+    std::shared_ptr<Shared<T>> shared = std::make_shared(Shared<T>(1));
+    Receiver<T> rx(shared, 0);
+    Sender<T> tx(shared);
 
     return make_pair(tx, rx);
 }

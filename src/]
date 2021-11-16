@@ -8,7 +8,7 @@
 
 #include <pthread.h>
 
-namespace Input {
+//namespace Input {
 
     // Single producer multiple consumer channel.
     template <typename T>
@@ -61,6 +61,6 @@ namespace Input {
         size_t next;
     };
 
-}
+//}
 
 #endif
