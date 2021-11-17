@@ -1,36 +1,27 @@
 #ifndef _PLAYER_H_
 #define _PLAYER_H_
 
-#include <SFML/Graphics/Drawable.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
-#include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Event.hpp>
 
 #include "includes/spaceship.h"
+#include "includes/gameobj.h"
 
-class Player: public sf::Drawable {
+class Player: public GameObject {
 public:
-    sf::Vector2<float> pos;
+    sf::Vector2f pos;
     float ang;
-    sf::Vector2<float> vel;
-    sf::Vector2<float> acc;
+    sf::Vector2f vel;
+    sf::Vector2f acc;
 
+    sf::Color color;
     Spaceship mesh;
 
-    Player(sf::Vector2<float> pos, sf::Color color) :
-        pos(pos),
-        ang(0),
-        vel(0, 0),
-        acc(0, 0),
-        color(color) {}
+    Player(sf::Vector2f pos, sf::Color color);
 
-    void update();
     void setRotation(float ang);
+    void applyForce(sf::Vector2f vec);
 
-private:
-    sf::Color color;
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+    virtual void update();
 };
 
 #endif

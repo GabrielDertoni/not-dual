@@ -1,14 +1,16 @@
 BIN := not_dual
 
-CC := gcc
+CC := g++
 CFLAGS := -std=c++20 -Wall -Werror -Wpedantic
-LIBS := -lsfml-graphics -lsfml-window -lsfml-system
+LIBS := -lsfml-graphics -lsfml-window -lsfml-system -lpthread -lm
 
 SRC_DIR := src
 BUILD_DIR := build
+INCL_DIR := includes
 OBJ_DIR := $(BUILD_DIR)/obj
 BIN_DIR := $(BUILD_DIR)/bin
 SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+INCLS := $(wildcard $(INCL_DIR)/*.h)
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
 # Colors
@@ -20,7 +22,7 @@ BYELLOW := $(ESC)[1;33m
 BBLUE := $(ESC)[1;34m
 
 all: $(OBJS) | $(BIN_DIR)/
-	@printf "\t$(BGREEN)LINK$(RESET) \t$^ $(LIBS) %%s -> $(BIN)\n"
+	@printf "\t$(BGREEN)LINK$(RESET) \t$^ $(LIBS) -> $(BIN)\n"
 	@$(CC) $(CFLAGS) -o $(BIN) $^ $(LIBS)
 
 $(OBJ_DIR)/%.o: src/%.cpp | $(OBJ_DIR)/
