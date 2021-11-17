@@ -1,7 +1,7 @@
 BIN := not_dual
 
-CC := g++
-CFLAGS := -std=c++2a -Wall -Werror -Wpedantic
+CC := gcc
+CFLAGS := -std=c++20 -Wall -Werror -Wpedantic
 LIBS := -lsfml-graphics -lsfml-window -lsfml-system
 
 SRC_DIR := src
@@ -10,7 +10,6 @@ OBJ_DIR := $(BUILD_DIR)/obj
 BIN_DIR := $(BUILD_DIR)/bin
 SRCS := $(wildcard $(SRC_DIR)/*.cpp)
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
-
 
 # Colors
 ESC := \033
@@ -26,7 +25,7 @@ all: $(OBJS) | $(BIN_DIR)/
 
 $(OBJ_DIR)/%.o: src/%.cpp | $(OBJ_DIR)/
 	@printf "\t$(BBLUE)CC$(RESET)   \t$< -> $@\n"
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@ -I.
 
 # Tell make that this is not an intermediate file.
 .PRECIOUS: %/

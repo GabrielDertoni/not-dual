@@ -1,66 +1,29 @@
+/*
 #ifndef _INPUT_H_
 #define _INPUT_H_
 
-#include <iostream>
-#include <deque>
+#include <thread>
 #include <memory>
-#include <experimental/optional>
 
-#include <pthread.h>
+#include <SFML/Window/Event.hpp>
 
-namespace Input {
+#include "includes/spmc.h"
 
-    // Single producer multiple consumer channel.
-    template <typename T>
-    class Slot {
-    private:
-        Slot(T val, size_t rem) : val(val), rem(rem) {}
-
-        // Value in the slot.
-        T val;
-
-        // Number of threads yet to read.
-        size_t rem;
-    };
-
-    template <typename T>
-    class Shared {
-    private:
-        Shared(size_t rxCount);
-
-        pthread_mutex_t mutex;
-        std::deque<Slot<T>> buf;
-        size_t rxCount;
-        bool isClosed;
-        size_t offset;
-    };
-
-    template <typename T>
-    class Sender {
+namespace input {
+    class Broadcaster {
     public:
-        bool send(T val);
+        Broadcaster(sf::RenderWindow& window);
+
+        spmc::Receiver<sf::Event> getEventReceiver();
 
     private:
-        Sender(std::shared_ptr<Shared<T>> shared) : shared(shared) {}
-        ~Sender();
-        std::shared_ptr<Shared<T>> shared;
+        void eventLoop();
+
+        sf::RenderWindow& mWindow;
+        std::unique_ptr<spmc::Sender<sf::Event>> mSender;
+        std::thread mEventThread;
     };
-
-
-    template <typename T>
-    class Receiver {
-    public:
-        std::experimental::optional<T> recv();
-
-    private:
-        Receiver(std::shared_ptr<Shared<T>> shared, size_t next) :
-            shared(shared),
-            next(next) {}
-
-        std::shared_ptr<Shared<T>> shared;
-        size_t next;
-    };
-
 }
 
 #endif
+*/

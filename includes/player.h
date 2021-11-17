@@ -5,8 +5,9 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
 
-#include "spaceship.h"
+#include "includes/spaceship.h"
 
 class Player: public sf::Drawable {
 public:

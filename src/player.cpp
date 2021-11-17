@@ -4,7 +4,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "../includes/player.h"
+#include "includes/player.h"
 
 void Player::update() {
     
