@@ -7,19 +7,21 @@
 
 #include "includes/collider.h"
 #include "includes/player.h"
-#include "includes/globals.h"
+#include "includes/input.h"
 
 Player::Player(
     sf::Vector2<float> pos,
     sf::Color color,
     std::unique_ptr<Controller> controller,
     BoxCollider collider,
-    BoxCollider container
+    BoxCollider container,
+    float life
 ) :
     pos(pos),
     ang(0),
     vel(0, 0),
     acc(0, 0),
+    life(life),
     color(color),
     mesh(pos, 0, color),
     collider(collider),
@@ -75,14 +77,18 @@ void Player::applyForce(sf::Vector2f vec) {
     acc += vec;
 }
 
+bool Player::isDead() {
+    return life <= 0;
+}
+
 std::bitset<Controller::NumInputs> WASDController::readInput() {
     std::bitset<Controller::NumInputs> set;
     set.reset();
 
-    if (keysPressed[sf::Keyboard::W]) set.set(Controller::Up);
-    if (keysPressed[sf::Keyboard::A]) set.set(Controller::Left);
-    if (keysPressed[sf::Keyboard::S]) set.set(Controller::Down);
-    if (keysPressed[sf::Keyboard::D]) set.set(Controller::Right);
+    if (input::isKeyPressed(sf::Keyboard::W)) set.set(Controller::Up);
+    if (input::isKeyPressed(sf::Keyboard::A)) set.set(Controller::Left);
+    if (input::isKeyPressed(sf::Keyboard::S)) set.set(Controller::Down);
+    if (input::isKeyPressed(sf::Keyboard::D)) set.set(Controller::Right);
 
     return set;
 }
@@ -91,10 +97,10 @@ std::bitset<Controller::NumInputs> ArrowsController::readInput() {
     std::bitset<Controller::NumInputs> set;
     set.reset();
 
-    if (keysPressed[sf::Keyboard::Up   ]) set.set(Controller::Up);
-    if (keysPressed[sf::Keyboard::Left ]) set.set(Controller::Left);
-    if (keysPressed[sf::Keyboard::Down ]) set.set(Controller::Down);
-    if (keysPressed[sf::Keyboard::Right]) set.set(Controller::Right);
+    if (input::isKeyPressed(sf::Keyboard::Up   )) set.set(Controller::Up);
+    if (input::isKeyPressed(sf::Keyboard::Left )) set.set(Controller::Left);
+    if (input::isKeyPressed(sf::Keyboard::Down )) set.set(Controller::Down);
+    if (input::isKeyPressed(sf::Keyboard::Right)) set.set(Controller::Right);
 
     return set;
 }
