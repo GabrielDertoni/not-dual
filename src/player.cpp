@@ -101,7 +101,7 @@ void Player::update() {
     }
 
     for (auto& obj : gameObjects) {
-        Bullet* bullet = dynamic_cast<Bullet*>(obj.get());
+        Bullet* bullet = obj->tryCast<Bullet>();
         if (bullet != nullptr && collider.intersects(bullet->getCollider()) &&
             bullet->getTag() != tag) {
             life -= BULLET_DAMAGE;

@@ -36,8 +36,8 @@ public:
     float getRotationRad() const;
     sf::Vector2f getDir() const;
 
-    // template <class T>
-    // T* tryCast();
+    template <class T>
+    T* tryCast();
 
 public:
     virtual void update() = 0;
@@ -52,11 +52,9 @@ private:
 
 /* Implementation of generic functions */
 
-/*
 template <class T>
-T* tryCast() {
+T* GameObject::tryCast() {
     return dynamic_cast<T*>(this);
 }
-*/
 
 #endif
