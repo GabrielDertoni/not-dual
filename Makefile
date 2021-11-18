@@ -1,7 +1,7 @@
 BIN := not_dual
 
 CC := g++
-CFLAGS := -std=c++20 -Wall -Werror -Wpedantic
+CFLAGS := -std=c++20 -Wall -Werror -Wpedantic -g
 LIBS := -lsfml-graphics -lsfml-window -lsfml-system -lpthread -lm
 
 SRC_DIR := src

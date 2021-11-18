@@ -1,23 +1,24 @@
-/*
+#include <bitset>
+
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "includes/spmc.h"
-#include "includes/input.h"
+#include "includes/spmc.hpp"
+#include "includes/input.hpp"
 
-using namespace input;
+namespace input {
+    static std::bitset<sf::Keyboard::KeyCount> keysPressed;
 
-Broadcaster::Broadcaster(sf::RenderWindow& window) : window(window) {
-    auto pair = spmc::channel<sf::Event>();
-    mSender = std::make_unique(pair.first);
-    spmc::Receiver<sf::Event> rx = pair.second;
-    mEventThread = std::thread(&Broadcaster::eventLoop, this);
-}
+    void registerKeyPress(sf::Event::KeyEvent key) {
+        keysPressed.set(key.code);
+    }
 
-void Broadcaster::eventLoop() {
-    sf::Event event;
-    while (window.waitEvent(event)) {
-        
+    void registerKeyRelease(sf::Event::KeyEvent key) {
+        keysPressed.reset(key.code);
+    }
+
+    bool isKeyPressed(sf::Keyboard::Key keyCode) {
+        return keysPressed[keyCode];
     }
 }
-*/
+

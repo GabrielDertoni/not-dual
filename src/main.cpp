@@ -7,51 +7,52 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "../includes/player.h"
-#include "../includes/bullet.h"
-#include "../includes/gameobj.h"
-#include "../includes/globals.h"
+#include "includes/player.hpp"
+#include "includes/gameobj.hpp"
+#include "includes/gamestate.hpp"
+#include "includes/input.hpp"
 
 #define WIDTH  600
 #define HEIGHT 400
 
+const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
+
 std::binary_semaphore gameLoopStart(0);
 std::binary_semaphore gameLoopDone(1);
 
-Player p1 = Player::create<WASDController>(
-    sf::Vector2f(100, 200),
-    sf::Color::Green,
-    BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true)
-);
-Player p2 = Player::create<ArrowsController>(
-    sf::Vector2f(500, 200),
-    sf::Color::Red,
-    BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true)
-);
-
-Bullet b = Bullet::create(
-    sf::Vector2f(150, 200),
-    sf::Vector2f(2, 2),
-    0,
-    sf::Color::White,
-    BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH, HEIGHT), true)
-);
-
 std::deque<sf::Drawable*> drawQueue;
-std::deque<sf::Event> eventQueue;
-
-std::vector<GameObject*> gameObjects;
-std::array<bool, sf::Keyboard::KeyCount> keysPressed;
 
 bool done;
 
+bool gameIsOver = false;
+
 void gameLoop() {
     while (!done) {
-        gameLoopStart.acquire();
+        while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
+        if (done) break;
+
         for (auto& obj : gameObjects) {
             obj->update();
         }
+
+        if (gameIsOver) {
+            
+        }
         gameLoopDone.release();
+    }
+}
+
+void populateEventQueue(sf::RenderWindow& window) {
+    sf::Event event;
+    while (window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            window.close();
+            done = true;
+        } else if (event.type == sf::Event::KeyPressed) {
+            input::registerKeyPress(event.key);
+        } else if (event.type == sf::Event::KeyReleased) {
+            input::registerKeyRelease(event.key);
+        }
     }
 }
 
@@ -64,18 +65,17 @@ int main() {
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
-    p1.setRotation(45);
-    p2.setRotation(315);
+    addGameObject(Player::create_unique<WASDController>(
+        sf::Vector2f(100, 200),
+        sf::Color::Green,
+        BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true)
+    ));
 
-    gameObjects.push_back(&p1);
-    gameObjects.push_back(&p2);
-
-    /*
-    auto pair = spmc::channel();
-    Sender<sf::Event> inputSender = pair.first;
-    Receiver<sf::Event> rx1 = pair.second;
-    Receiver<sf::Event> rx2 = pair.second;
-    */
+    addGameObject(Player::create_unique<ArrowsController>(
+        sf::Vector2f(500, 200),
+        sf::Color::Red,
+        BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true)
+    ));
 
     std::thread gameThread(gameLoop);
 
@@ -96,27 +96,20 @@ int main() {
         // Game loop ends
         gameLoopDone.acquire();
 
-        // Push stuff to the draw queue
-        drawQueue.push_back(p1.getMesh());
-        drawQueue.push_back(p2.getMesh());
-        drawQueue.push_back(&divisionLine);
-
-        eventQueue.clear();
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
-                window.close();
-                done = true;
-            } else if (event.type == sf::Event::KeyPressed) {
-                keysPressed[event.key.code] = true;
-            } else if (event.type == sf::Event::KeyReleased) {
-                keysPressed[event.key.code] = false;
-            }
-
-            eventQueue.push_back(event);
+        if (done) {
+            window.close();
+            break;
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(17));
+        // Push stuff to the draw queue
+        for (auto& obj : gameObjects) {
+            drawQueue.push_back(obj->getMesh());
+        }
+        drawQueue.push_back(&divisionLine);
+
+        populateEventQueue(window);
+
+        std::this_thread::sleep_for(frameTimeBudget);
     }
 
     gameLoopStart.release();
