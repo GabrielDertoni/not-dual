@@ -13,12 +13,17 @@
 #include "includes/collider.hpp"
 #include "includes/spaceship.hpp"
 #include "includes/gameobj.hpp"
+#include "includes/time.hpp"
 
-#define PLAYER_SIZE   20
+#define PLAYER_SIZE 20
+// How much force is applied when the player presses a button.
 #define IMPULSE       0.2f
 #define DAMPENING     0.97f
 #define DAMPENING_ACC 0.5f
 
+#define BULLET_SPEED  5.0f
+#define BULLET_DAMAGE 1
+#define SHOOT_INTERVAL (std::chrono::milliseconds(500))
 
 class Controller {
 public:
@@ -32,27 +37,20 @@ public:
 
 class Player: public GameObject {
 public:
-    template <class Ctrl>
-    static Player create(sf::Vector2f pos, float ang, sf::Color color, BoxCollider container);
-
-    template <class Ctrl>
-    static std::unique_ptr<Player> create_unique(sf::Vector2f pos, float ang, sf::Color color, BoxCollider container);
-
-public:
     void setRotation(float ang);
     void applyForce(sf::Vector2f vec);
     bool isDead();
 
     virtual void update();
-    virtual sf::Drawable* getMesh();
+    virtual const sf::Drawable* getMesh() const;
 
-    Player(sf::Vector2f pos, float ang, sf::Color color,
-           std::unique_ptr<Controller> controller, BoxCollider collider,
+    Player(Transform transform, sf::Color color,
+           Controller* controller, BoxCollider container);
+    Player(Transform transform, sf::Color color,
+           Controller* controller, BoxCollider collider,
            BoxCollider container, float life);
 
 private:
-    sf::Vector2f pos;
-    float ang;
     sf::Vector2f vel;
     sf::Vector2f acc;
 
@@ -64,9 +62,9 @@ private:
 
     BoxCollider container;
 
-    std::unique_ptr<Controller> controller;
+    Controller* controller;
 
-    // std::chrono::time_point<std::chrono::high_resolution_clock> lastShot;
+    Timestamp lastShot;
 };
 
 class WASDController: public Controller {
@@ -81,39 +79,8 @@ public:
     virtual std::bitset<Controller::NumInputs> readInput();
 };
 
-
-template <class Ctrl>
-Player Player::create(sf::Vector2f pos, float ang, sf::Color color, BoxCollider container) {
-    sf::Vector2f offset(PLAYER_SIZE, PLAYER_SIZE);
-    return Player(
-        pos,
-        ang,
-        color,
-        std::make_unique<Ctrl>(),
-        BoxCollider(pos - offset, pos + offset),
-        container,
-        100
-    );
-}
-
-template <class Ctrl>
-std::unique_ptr<Player> Player::create_unique(
-    sf::Vector2f pos,
-    float ang,
-    sf::Color color,
-    BoxCollider container
-) {
-    sf::Vector2f offset(PLAYER_SIZE, PLAYER_SIZE);
-    return std::make_unique<Player>(
-        pos,
-        ang,
-        color,
-        std::make_unique<Ctrl>(),
-        BoxCollider(pos - offset, pos + offset),
-        container,
-        100
-    );
-}
+extern WASDController wasdController;
+extern ArrowsController arrowsController;
 
 
 #endif

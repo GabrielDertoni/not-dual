@@ -18,7 +18,7 @@ const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 std::binary_semaphore gameLoopStart(0);
 std::binary_semaphore gameLoopDone(1);
 
-std::deque<sf::Drawable*> drawQueue;
+std::deque<const sf::Drawable*> drawQueue;
 
 bool done;
 
@@ -66,19 +66,19 @@ int main() {
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
-    auto p1 = Player::create_unique<WASDController>(
-        sf::Vector2f(100, 200),
-        0,
+    auto p1 = std::make_unique<Player>(
+        Transform(sf::Vector2f(100, 200), 0),
         sf::Color::Green,
+        &wasdController,
         BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true)
     );
     p1->setTag("Player1");
     addGameObject(std::move(p1));
 
-    auto p2 = Player::create_unique<ArrowsController>(
-        sf::Vector2f(500, 200),
-        180,
+    auto p2 = std::make_unique<Player>(
+        Transform(sf::Vector2f(500, 200), 180),
         sf::Color::Red,
+        &arrowsController,
         BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true)
     );
     p2->setTag("Player2");
@@ -94,8 +94,7 @@ int main() {
 
         window.clear();
         while (!drawQueue.empty()) {
-            sf::Drawable* shape = drawQueue.front();
-            window.draw(*shape);
+            window.draw(*drawQueue.front());
             drawQueue.pop_front();
         }
         window.display();

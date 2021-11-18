@@ -1,6 +1,5 @@
 #include <iostream>
 #include <memory>
-#include <math.h>
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -13,33 +12,44 @@
 #include "includes/bullet.hpp"
 #include "includes/input.hpp"
 
-#define BULLET_SPEED  5.0f
-#define BULLET_DAMAGE 1
-
-// static std::chrono::duration shootInterval = std::chrono::milliseconds(500);
+static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
 Player::Player(
-    sf::Vector2<float> pos,
-    float ang,
+    Transform transform,
     sf::Color color,
-    std::unique_ptr<Controller> controller,
+    Controller* controller,
     BoxCollider collider,
     BoxCollider container,
     float life
 ) :
-    pos(pos),
-    ang(ang),
+    GameObject(transform),
     vel(0, 0),
     acc(0, 0),
     life(life),
     color(color),
-    mesh(pos, 0, color),
+    mesh(this, color, PLAYER_SIZE),
     collider(collider),
     container(container),
-    controller(std::move(controller))
+    controller(controller)
 {
-    // lastShot = std::chrono::high_resolution_clock::now();
+    lastShot = getNow();
 }
+
+Player::Player(
+    Transform transform,
+    sf::Color color,
+    Controller* controller,
+    BoxCollider container
+) :
+    Player(
+       transform,
+       color,
+       controller,
+       BoxCollider(transform.position - size, transform.position + size),
+       container,
+       100
+    )
+{}
 
 void Player::update() {
     auto inputs = controller->readInput();
@@ -50,16 +60,14 @@ void Player::update() {
     if (inputs[Controller::Left ]) vec.x += -1;
     if (inputs[Controller::Right]) vec.x +=  1;
 
-    // auto now = std::chrono::high_resolution_clock::now();
-    // auto ellapsed = now - lastShot;
+    Timestamp now = getNow();
+    auto ellapsed = now - lastShot;
 
-    if (inputs[Controller::Shoot]/* && ellapsed > shootInterval */) {
-        float angRad = M_PI * ang / 180;
-        sf::Vector2f dir(cos(angRad), sin(angRad));
-        sf::Vector2f vec = dir * BULLET_SPEED;
+    if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
+        sf::Vector2f vec = getDir() * BULLET_SPEED;
 
-        auto bullet = Bullet::create_unique(
-            pos,
+        auto bullet = std::make_unique<Bullet>(
+            transform,
             vec,
             sf::Color::White,
             worldCollider
@@ -67,7 +75,7 @@ void Player::update() {
         bullet->setTag(tag);
         addGameObject(std::move(bullet));
 
-        // lastShot = std::chrono::high_resolution_clock::now();
+        lastShot = getNow();
     }
 
     float norm = sqrt(vec.x * vec.x + vec.y * vec.y);
@@ -75,20 +83,19 @@ void Player::update() {
 
     applyForce(vec * IMPULSE);
 
-    sf::Vector2f prev = pos;
+    sf::Vector2f prev = getPosition();
 
-    pos += vel;
+    transform.position += vel;
     vel *= DAMPENING;
     vel += acc;
-
     acc *= DAMPENING_ACC;
 
     sf::Vector2f offset(PLAYER_SIZE, PLAYER_SIZE);
-    collider.leftTop = pos - offset;
-    collider.rightBottom = pos + offset;
+    collider.leftTop = getPosition() - offset;
+    collider.rightBottom = getPosition() + offset;
 
     if (collider.intersects(container)) {
-        pos = prev;
+        setPosition(prev);
         vel = sf::Vector2f(0, 0);
         acc = sf::Vector2f(0, 0);
     }
@@ -106,16 +113,11 @@ void Player::update() {
         destroy();
     }
 
-    mesh.pos = pos;
-    mesh.ang = ang;
+    mesh.update();
 }
 
-sf::Drawable* Player::getMesh() {
+const sf::Drawable* Player::getMesh() const {
     return &mesh;
-}
-
-void Player::setRotation(float ang) {
-    this->ang = ang;
 }
 
 void Player::applyForce(sf::Vector2f vec) {
@@ -125,6 +127,9 @@ void Player::applyForce(sf::Vector2f vec) {
 bool Player::isDead() {
     return life <= 0;
 }
+
+WASDController wasdController;
+ArrowsController arrowsController;
 
 std::bitset<Controller::NumInputs> WASDController::readInput() {
     std::bitset<Controller::NumInputs> set;

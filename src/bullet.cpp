@@ -1,19 +1,17 @@
 #include "includes/gameobj.hpp"
 #include "includes/bullet.hpp"
 
-#define BULLET_SIZE 5
+static const sf::Vector2f offset(BULLET_SIZE, BULLET_SIZE);
 
 Bullet::Bullet(
-    sf::Vector2f pos,
+    Transform transform,
     sf::Vector2f vel,
-    float ang,
     sf::Color color,
     BoxCollider collider,
     BoxCollider container
 ) :
-    pos(pos),
+    GameObject(transform),
     vel(vel),
-    ang(0),
     color(color),
     mesh(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)),
     collider(collider),
@@ -21,57 +19,37 @@ Bullet::Bullet(
 {}
 
 void Bullet::update() {
-    pos += vel;
+    transform.position += vel;
 
     sf::Vector2f offset(BULLET_SIZE, BULLET_SIZE);
-    collider.leftTop = pos - offset;
-    collider.rightBottom = pos + offset;
+    collider.leftTop = getPosition() - offset;
+    collider.rightBottom = getPosition() + offset;
 
     if (collider.intersects(container)) {
         destroy();
     }
 
-    mesh.setPosition(pos);
+    mesh.setPosition(getPosition());
 }
 
-sf::Drawable* Bullet::getMesh() {
+const sf::Drawable* Bullet::getMesh() const {
     return &mesh;
 }
 
-Bullet Bullet::create(
-    sf::Vector2f pos,
-    sf::Vector2f vel,
-    float ang,
-    sf::Color color,
-    BoxCollider container
-) {
-    sf::Vector2f offset(BULLET_SIZE, BULLET_SIZE);
-    return Bullet(
-        pos,
-        vel,
-        ang,
-        color,
-        BoxCollider(pos - offset, pos + offset),
-        container
-    );
-}
-
-std::unique_ptr<Bullet> Bullet::create_unique(
-    sf::Vector2f pos,
+Bullet::Bullet(
+    Transform transform,
     sf::Vector2f vel,
     sf::Color color,
     BoxCollider container
-) {
-    sf::Vector2f offset(BULLET_SIZE, BULLET_SIZE);
-    return std::make_unique<Bullet>(
-        pos,
+) :
+    Bullet(
+        transform,
         vel,
-        0,
         color,
-        BoxCollider(pos - offset, pos + offset),
+        BoxCollider(transform.position - offset, transform.position + offset),
         container
-    );
-}
+    )
+{}
 
 BoxCollider& Bullet::getCollider() {
     return collider;
