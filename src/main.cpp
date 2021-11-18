@@ -4,6 +4,7 @@
 #include <memory>
 #include <chrono>
 #include <deque>
+#include <list>
 
 #include <SFML/Graphics.hpp>
 
@@ -11,9 +12,6 @@
 #include "includes/gameobj.hpp"
 #include "includes/gamestate.hpp"
 #include "includes/input.hpp"
-
-#define WIDTH  600
-#define HEIGHT 400
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 
@@ -31,9 +29,12 @@ void gameLoop() {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        for (auto& obj : gameObjects) {
-            obj->update();
+        auto end = gameObjects.end();
+        for (auto it = gameObjects.begin(); it != end; it++) {
+            (*it)->callUpdate(it);
         }
+
+        destroyAllMarked();
 
         if (gameIsOver) {
             
@@ -65,17 +66,23 @@ int main() {
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
-    addGameObject(Player::create_unique<WASDController>(
+    auto p1 = Player::create_unique<WASDController>(
         sf::Vector2f(100, 200),
+        0,
         sf::Color::Green,
         BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true)
-    ));
+    );
+    p1->setTag("Player1");
+    addGameObject(std::move(p1));
 
-    addGameObject(Player::create_unique<ArrowsController>(
+    auto p2 = Player::create_unique<ArrowsController>(
         sf::Vector2f(500, 200),
+        180,
         sf::Color::Red,
         BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true)
-    ));
+    );
+    p2->setTag("Player2");
+    addGameObject(std::move(p2));
 
     std::thread gameThread(gameLoop);
 

@@ -2,17 +2,19 @@
 #define _PLAYER_H_
 
 #include <bitset>
+#include <chrono>
 #include <memory>
 #include <math.h>
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/System/Clock.hpp>
 
 #include "includes/collider.hpp"
 #include "includes/spaceship.hpp"
 #include "includes/gameobj.hpp"
 
-#define SIZE          20
+#define PLAYER_SIZE   20
 #define IMPULSE       0.2f
 #define DAMPENING     0.97f
 #define DAMPENING_ACC 0.5f
@@ -21,7 +23,8 @@
 class Controller {
 public:
     enum Input {
-        Up, Down, Left, Right, NumInputs
+        Up, Down, Left, Right, Shoot,
+        NumInputs
     };
 
     virtual std::bitset<NumInputs> readInput() = 0;
@@ -30,10 +33,10 @@ public:
 class Player: public GameObject {
 public:
     template <class Ctrl>
-    static Player create(sf::Vector2f pos, sf::Color color, BoxCollider container);
+    static Player create(sf::Vector2f pos, float ang, sf::Color color, BoxCollider container);
 
     template <class Ctrl>
-    static std::unique_ptr<Player> create_unique(sf::Vector2f pos, sf::Color color, BoxCollider container);
+    static std::unique_ptr<Player> create_unique(sf::Vector2f pos, float ang, sf::Color color, BoxCollider container);
 
 public:
     void setRotation(float ang);
@@ -43,7 +46,7 @@ public:
     virtual void update();
     virtual sf::Drawable* getMesh();
 
-    Player(sf::Vector2f pos, sf::Color color,
+    Player(sf::Vector2f pos, float ang, sf::Color color,
            std::unique_ptr<Controller> controller, BoxCollider collider,
            BoxCollider container, float life);
 
@@ -62,6 +65,8 @@ private:
     BoxCollider container;
 
     std::unique_ptr<Controller> controller;
+
+    // std::chrono::time_point<std::chrono::high_resolution_clock> lastShot;
 };
 
 class WASDController: public Controller {
@@ -78,10 +83,11 @@ public:
 
 
 template <class Ctrl>
-Player Player::create(sf::Vector2f pos, sf::Color color, BoxCollider container) {
-    sf::Vector2f offset(SIZE, SIZE);
+Player Player::create(sf::Vector2f pos, float ang, sf::Color color, BoxCollider container) {
+    sf::Vector2f offset(PLAYER_SIZE, PLAYER_SIZE);
     return Player(
         pos,
+        ang,
         color,
         std::make_unique<Ctrl>(),
         BoxCollider(pos - offset, pos + offset),
@@ -93,12 +99,14 @@ Player Player::create(sf::Vector2f pos, sf::Color color, BoxCollider container) 
 template <class Ctrl>
 std::unique_ptr<Player> Player::create_unique(
     sf::Vector2f pos,
+    float ang,
     sf::Color color,
     BoxCollider container
 ) {
-    sf::Vector2f offset(SIZE, SIZE);
+    sf::Vector2f offset(PLAYER_SIZE, PLAYER_SIZE);
     return std::make_unique<Player>(
         pos,
+        ang,
         color,
         std::make_unique<Ctrl>(),
         BoxCollider(pos - offset, pos + offset),
