@@ -7,9 +7,10 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "includes/player.h"
-#include "includes/gameobj.h"
-#include "includes/globals.h"
+#include "../includes/player.h"
+#include "../includes/bullet.h"
+#include "../includes/gameobj.h"
+#include "../includes/globals.h"
 
 #define WIDTH  600
 #define HEIGHT 400
@@ -26,6 +27,14 @@ Player p2 = Player::create<ArrowsController>(
     sf::Vector2f(500, 200),
     sf::Color::Red,
     BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true)
+);
+
+Bullet b = Bullet::create(
+    sf::Vector2f(150, 200),
+    sf::Vector2f(2, 2),
+    0,
+    sf::Color::White,
+    BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH, HEIGHT), true)
 );
 
 std::deque<sf::Drawable*> drawQueue;

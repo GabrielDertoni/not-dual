@@ -2,7 +2,7 @@
 
 #include <SFML/System/Vector2.hpp>
 
-#include "includes/collider.h"
+#include "../includes/collider.h"
 
 
 bool BoxCollider::intersects(BoxCollider& other) {

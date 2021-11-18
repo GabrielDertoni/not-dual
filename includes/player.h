@@ -7,9 +7,9 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "includes/collider.h"
-#include "includes/spaceship.h"
-#include "includes/gameobj.h"
+#include "../includes/collider.h"
+#include "../includes/spaceship.h"
+#include "../includes/gameobj.h"
 
 #define SIZE          20
 #define IMPULSE       0.2f

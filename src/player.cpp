@@ -5,9 +5,9 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-#include "includes/collider.h"
-#include "includes/player.h"
-#include "includes/globals.h"
+#include "../includes/collider.h"
+#include "../includes/player.h"
+#include "../includes/globals.h"
 
 Player::Player(
     sf::Vector2<float> pos,
@@ -46,7 +46,7 @@ void Player::update() {
     pos += vel;
     vel *= DAMPENING;
     vel += acc;
-    
+
     acc *= DAMPENING_ACC;
 
     sf::Vector2f offset(SIZE, SIZE);

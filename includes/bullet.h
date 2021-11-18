@@ -2,25 +2,32 @@
 #define _BULLET_H_
 
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include "../includes/spaceship.h"
+
+#include "../includes/collider.h"
 
 class Bullet {
 public:
-    Vector2f pos;
-    float ang;
-    Vector2f vel;
-    Vector2f acc;
+    static Bullet create(sf::Vector2f pos, sf::Vector2f vel, float ang,
+            sf::Color color, BoxCollider container);
 
+    virtual void update();
+
+private:
+    sf::Vector2f pos;
+    sf::Vector2f vel;
+    float ang;
+
+    sf::Color color;
+    sf::RectangleShape mesh;
     BoxCollider collider;
 
-    Bullet(Vector2f pos, Vector2f vel, BoxCollider collider) :
-        pos(pos),
-        ang(0),
-        vel(vel),
-        acc(0, 0),
-        collider(collider)
-    {}
+    BoxCollider container;
 
-    void update();
+    Bullet(sf::Vector2f pos, sf::Vector2f vel, float ang, sf::Color color,
+           BoxCollider collider, BoxCollider container);
+
 };
 
 #endif
