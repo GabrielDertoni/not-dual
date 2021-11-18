@@ -1,6 +1,7 @@
 #include <iostream>
 #include <semaphore>
 #include <thread>
+#include <memory>
 #include <chrono>
 #include <deque>
 
@@ -10,17 +11,28 @@
 #include "includes/gameobj.h"
 #include "includes/globals.h"
 
+#define WIDTH  600
+#define HEIGHT 400
+
 std::binary_semaphore gameLoopStart(0);
 std::binary_semaphore gameLoopDone(1);
 
-Player p1(sf::Vector2f(100, 200), sf::Color::Green);
-Player p2(sf::Vector2f(500, 200), sf::Color::Red);
+Player p1 = Player::create<WASDController>(
+    sf::Vector2f(100, 200),
+    sf::Color::Green,
+    BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true)
+);
+Player p2 = Player::create<ArrowsController>(
+    sf::Vector2f(500, 200),
+    sf::Color::Red,
+    BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true)
+);
 
 std::deque<sf::Drawable*> drawQueue;
 std::deque<sf::Event> eventQueue;
 
 std::vector<GameObject*> gameObjects;
-std::array<bool, 26> keysPressed;
+std::array<bool, sf::Keyboard::KeyCount> keysPressed;
 
 bool done;
 
@@ -35,19 +47,16 @@ void gameLoop() {
 }
 
 int main() {
-    int width = 600;
-    int height = 400;
-
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(width, height), "SFML works!", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!", sf::Style::Default, settings);
     window.setKeyRepeatEnabled(false);
 
-    sf::RectangleShape divisionLine(sf::Vector2f(1, height));
-    divisionLine.setPosition(width / 2, 0);
+    sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
+    divisionLine.setPosition(WIDTH / 2, 0);
 
-    p1.setRotation(90);
-    p2.setRotation(270);
+    p1.setRotation(45);
+    p2.setRotation(315);
 
     gameObjects.push_back(&p1);
     gameObjects.push_back(&p2);
@@ -79,8 +88,8 @@ int main() {
         gameLoopDone.acquire();
 
         // Push stuff to the draw queue
-        drawQueue.push_back(&p1.mesh);
-        drawQueue.push_back(&p2.mesh);
+        drawQueue.push_back(p1.getMesh());
+        drawQueue.push_back(p2.getMesh());
         drawQueue.push_back(&divisionLine);
 
         eventQueue.clear();
@@ -89,9 +98,9 @@ int main() {
             if (event.type == sf::Event::Closed) {
                 window.close();
                 done = true;
-            } else if (event.type == sf::Event::KeyPressed && event.key.code < 26) {
+            } else if (event.type == sf::Event::KeyPressed) {
                 keysPressed[event.key.code] = true;
-            } else if (event.type == sf::Event::KeyReleased && event.key.code < 26) {
+            } else if (event.type == sf::Event::KeyReleased) {
                 keysPressed[event.key.code] = false;
             }
 

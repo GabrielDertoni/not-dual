@@ -1,20 +1,24 @@
 #ifndef _BULLET_H_
 #define _BULLET_H_
 
-#include "vec.h"
+#include <SFML/System/Vector2.hpp>
 
 class Bullet {
 public:
-    Vec2<float> pos;
+    Vector2f pos;
     float ang;
-    Vec2<float> vel;
-    Vec2<float> acc;
+    Vector2f vel;
+    Vector2f acc;
 
-    Bullet(Vec2<float> pos, Vec2<float> vel) :
+    BoxCollider collider;
+
+    Bullet(Vector2f pos, Vector2f vel, BoxCollider collider) :
         pos(pos),
         ang(0),
         vel(vel),
-        acc(0, 0) {}
+        acc(0, 0),
+        collider(collider)
+    {}
 
     void update();
 };

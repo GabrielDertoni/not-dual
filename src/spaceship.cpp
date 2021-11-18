@@ -4,15 +4,14 @@
 #include <SFML/System/Vector2.hpp>
 
 #include "includes/spaceship.h"
-
+#include "includes/player.h"
 
 Spaceship::Spaceship(const Spaceship& other) {}
 
 void Spaceship::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    float size = 40;
-    sf::CircleShape shape(size, 3);
+    sf::CircleShape shape(SIZE, 4);
     shape.setFillColor(color);
-    shape.setOrigin(sf::Vector2f(size, size));
+    shape.setOrigin(sf::Vector2f(SIZE, SIZE));
     shape.setPosition(pos);
     shape.setRotation(ang);
     target.draw(shape);
