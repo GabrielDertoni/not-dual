@@ -151,7 +151,7 @@ std::bitset<Controller::NumInputs> ArrowsController::readInput() {
     if (input::isKeyPressed(sf::Keyboard::Up      )) set.set(Controller::Up);
     if (input::isKeyPressed(sf::Keyboard::Left    )) set.set(Controller::Left);
     if (input::isKeyPressed(sf::Keyboard::Down    )) set.set(Controller::Down);
-    if (input::isKeyPressed(sf::Keyboard::Right   )) set.set(Controller::Down);
+    if (input::isKeyPressed(sf::Keyboard::Right   )) set.set(Controller::Right);
     if (input::isKeyPressed(sf::Keyboard::RControl)) set.set(Controller::Shoot);
 
     return set;
