@@ -1,4 +1,4 @@
-#include "../includes/bullet.h"
+#include "includes/bullet.hpp"
 
 #define IMPULSE       0.2f
 #define DAMPENING     0.97f

@@ -3,9 +3,9 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
-#include "../includes/spaceship.h"
+#include "includes/spaceship.hpp"
 
-#include "../includes/collider.h"
+#include "includes/collider.hpp"
 
 class Bullet {
 public:

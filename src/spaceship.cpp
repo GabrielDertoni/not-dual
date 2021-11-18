@@ -3,8 +3,8 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "../includes/spaceship.h"
-#include "../includes/player.h"
+#include "includes/spaceship.hpp"
+#include "includes/player.hpp"
 
 Spaceship::Spaceship(const Spaceship& other) {}
 
