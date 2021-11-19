@@ -15,15 +15,15 @@
 #include "includes/gameobj.hpp"
 #include "includes/time.hpp"
 
-#define PLAYER_SIZE 20
+#define PLAYER_SIZE   20
 // How much force is applied when the player presses a button.
 #define IMPULSE       0.2f
 #define DAMPENING     0.97f
 #define DAMPENING_ACC 0.5f
 
 #define BULLET_SPEED  5.0f
-#define BULLET_DAMAGE 1
-#define SHOOT_INTERVAL (std::chrono::milliseconds(500))
+#define BULLET_DAMAGE 10
+#define SHOOT_INTERVAL (std::chrono::milliseconds(100))
 
 class Controller {
 public:
@@ -49,6 +49,7 @@ public:
     Player(Transform transform, sf::Color color,
            Controller* controller, BoxCollider collider,
            BoxCollider container, float life);
+    Player(const Player& other);
 
 private:
     sf::Vector2f vel;

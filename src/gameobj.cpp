@@ -22,7 +22,7 @@ void GameObject::destroy() {
     shouldBeDestroyed = true;
 }
 
-void GameObject::callUpdate(std::list<std::unique_ptr<GameObject>>::iterator self) {
+void GameObject::callUpdate(size_t self) {
     update();
 
     if (shouldBeDestroyed) {
@@ -30,7 +30,7 @@ void GameObject::callUpdate(std::list<std::unique_ptr<GameObject>>::iterator sel
     }
 }
 
-void GameObject::setTag(std::string tag) {
+void GameObject::setTag(const std::string& tag) {
     this->tag = tag;
 }
 

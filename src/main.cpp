@@ -24,14 +24,19 @@ bool done;
 
 bool gameIsOver = false;
 
+static const BoxCollider leftCollider  = BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true);
+static const BoxCollider rightCollider = BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true);
+
+static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
+static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
+
 void gameLoop() {
     while (!done) {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        auto end = gameObjects.end();
-        for (auto it = gameObjects.begin(); it != end; it++) {
-            (*it)->callUpdate(it);
+        for (size_t i = 0; i < gameObjects.size(); i++) {
+            gameObjects[i]->callUpdate(i);
         }
 
         destroyAllMarked();
@@ -66,23 +71,19 @@ int main() {
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
-    auto p1 = std::make_unique<Player>(
-        Transform(sf::Vector2f(100, 200), 0),
-        sf::Color::Green,
-        &wasdController,
-        BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true)
-    );
-    p1->setTag("Player1");
-    addGameObject(std::move(p1));
+    Player p1(Transform(leftPlayerStartPos, 0),
+              sf::Color::Green,
+              &wasdController,
+              leftCollider);
+    p1.setTag("Player1");
+    addGameObject(p1);
 
-    auto p2 = std::make_unique<Player>(
-        Transform(sf::Vector2f(500, 200), 180),
-        sf::Color::Red,
-        &arrowsController,
-        BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true)
-    );
-    p2->setTag("Player2");
-    addGameObject(std::move(p2));
+    Player p2(Transform(rightPlayerStartPos, 180),
+              sf::Color::Red,
+              &arrowsController,
+              rightCollider);
+    p2.setTag("Player2");
+    addGameObject(p2);
 
     std::thread gameThread(gameLoop);
 

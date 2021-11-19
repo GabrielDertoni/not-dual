@@ -1,5 +1,8 @@
 #include <iostream>
 #include <memory>
+#include <ranges>
+
+namespace views = std::views;
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -51,6 +54,14 @@ Player::Player(
     )
 {}
 
+Player::Player(const Player& other) :
+    Player(other.transform, other.color, other.controller, other.collider,
+           other.container, other.life)
+{
+    // TODO: Copy components.
+    setTag(other.getTag());
+}
+
 void Player::update() {
     auto inputs = controller->readInput();
     sf::Vector2f vec(0, 0);
@@ -66,14 +77,9 @@ void Player::update() {
     if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
         sf::Vector2f vec = getDir() * BULLET_SPEED;
 
-        auto bullet = std::make_unique<Bullet>(
-            transform,
-            vec,
-            sf::Color::White,
-            worldCollider
-        );
+        auto bullet = std::make_unique<Bullet>(transform, vec, sf::Color::White, worldCollider);
         bullet->setTag(tag);
-        addGameObject(std::move(bullet));
+        addGameObjectUnique(std::move(bullet));
 
         lastShot = getNow();
     }
@@ -100,13 +106,19 @@ void Player::update() {
         acc = sf::Vector2f(0, 0);
     }
 
-    for (auto& obj : gameObjects) {
-        Bullet* bullet = obj->tryCast<Bullet>();
-        if (bullet != nullptr && collider.intersects(bullet->getCollider()) &&
-            bullet->getTag() != tag) {
-            life -= BULLET_DAMAGE;
-            bullet->destroy();
-        }
+    auto toBullet = [](std::unique_ptr<GameObject>& obj) {return obj->tryCast<Bullet>();};
+    auto notNull = [](Bullet* ptr) {return ptr != nullptr;};
+    auto hasSameTag = [&](Bullet *bullet) {return bullet->getTag() == tag;};
+    auto collides = [&](Bullet *bullet) {return collider.intersects(bullet->getCollider());};
+
+    for (Bullet* bullet : getGameObjects()
+                        | views::transform(toBullet)
+                        | views::filter(notNull)
+                        | views::filter(hasSameTag)
+                        | views::filter(collides))
+    {
+        life -= BULLET_DAMAGE;
+        bullet->destroy();
     }
 
     if (life <= 0) {
