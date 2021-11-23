@@ -10,8 +10,8 @@
 
 #include "includes/player.hpp"
 #include "includes/gameobj.hpp"
-#include "includes/gamestate.hpp"
 #include "includes/input.hpp"
+#include "includes/settings.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 
@@ -35,11 +35,12 @@ void gameLoop() {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        for (size_t i = 0; i < gameObjects.size(); i++) {
-            gameObjects[i]->callUpdate(i);
+        auto objs = GameObject::getGameObjects();
+        for (size_t i = 0; i < objs.size(); i++) {
+            objs[i].update(i);
         }
 
-        destroyAllMarked();
+        GameObject::destroyAllMarked();
 
         if (gameIsOver) {
             
@@ -71,19 +72,19 @@ int main() {
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
-    Player p1(Transform(leftPlayerStartPos, 0),
-              sf::Color::Green,
-              &wasdController,
-              leftCollider);
+    GameObject p1(Transform(leftPlayerStartPos, 0));
     p1.setTag("Player1");
-    addGameObject(p1);
+    p1.addComponent<Player>(&wasdController, leftCollider);
+    p1.addComponent<Spaceship>(sf::Color::Green, PLAYER_SIZE);
+    p1.addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize));
+    GameObject::addGameObject(std::move(p1));
 
-    Player p2(Transform(rightPlayerStartPos, 180),
-              sf::Color::Red,
-              &arrowsController,
-              rightCollider);
+    GameObject p2(Transform(rightPlayerStartPos, 0));
     p2.setTag("Player2");
-    addGameObject(p2);
+    p2.addComponent<Player>(&arrowsController, rightCollider);
+    p2.addComponent<Spaceship>(sf::Color::Blue, PLAYER_SIZE);
+    p1.addComponent<BoxCollider>(rightCollider);
+    GameObject::addGameObject(std::move(p2));
 
     std::thread gameThread(gameLoop);
 
@@ -109,9 +110,11 @@ int main() {
         }
 
         // Push stuff to the draw queue
-        for (auto& obj : gameObjects) {
-            drawQueue.push_back(obj->getMesh());
+        /*
+        for (auto& obj : GameObject::getGameObjects()) {
+            drawQueue.push_back(obj.getMesh());
         }
+        */
         drawQueue.push_back(&divisionLine);
 
         populateEventQueue(window);

@@ -9,15 +9,16 @@
 
 #include "includes/gameobj.hpp"
 
-class Spaceship: public sf::Drawable {
+class Spaceship: public Behaviour, public sf::Drawable {
 public:
-    Spaceship(GameObject* gameObject, sf::Color color, float size);
+    Spaceship(sf::Color color, float size);
+    Spaceship(const Spaceship& other);
 
-    void update();
+    virtual std::unique_ptr<Component> clone();
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
 
 private:
-    GameObject* gameObject;
-
     float size;
     sf::RectangleShape shape;
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;

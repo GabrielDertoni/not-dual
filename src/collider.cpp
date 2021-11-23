@@ -4,6 +4,10 @@
 
 #include "includes/collider.hpp"
 
+BoxCollider::BoxCollider(const BoxCollider& other) :
+    BoxCollider(other.leftTop, other.rightBottom, other.inverted)
+{}
+
 bool BoxCollider::intersects(BoxCollider& other) {
     if (!inverted) {
         if (!other.inverted) {
@@ -31,4 +35,8 @@ bool BoxCollider::intersects(BoxCollider& other) {
         return true;
     }
 
+}
+
+std::unique_ptr<Component> BoxCollider::clone() {
+    return std::make_unique<BoxCollider>(*this);
 }

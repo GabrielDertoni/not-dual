@@ -10,28 +10,22 @@ namespace views = std::views;
 #include <SFML/Window/Keyboard.hpp>
 
 #include "includes/collider.hpp"
-#include "includes/gamestate.hpp"
 #include "includes/player.hpp"
+#include "includes/rigidbody.hpp"
 #include "includes/bullet.hpp"
 #include "includes/input.hpp"
+#include "includes/settings.hpp"
 
 static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
+static const BoxCollider worldCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH, HEIGHT), true);
+
 Player::Player(
-    Transform transform,
-    sf::Color color,
     Controller* controller,
-    BoxCollider collider,
     BoxCollider container,
     float life
 ) :
-    GameObject(transform),
-    vel(0, 0),
-    acc(0, 0),
     life(life),
-    color(color),
-    mesh(this, color, PLAYER_SIZE),
-    collider(collider),
     container(container),
     controller(controller)
 {
@@ -39,30 +33,27 @@ Player::Player(
 }
 
 Player::Player(
-    Transform transform,
-    sf::Color color,
     Controller* controller,
     BoxCollider container
 ) :
     Player(
-       transform,
-       color,
        controller,
-       BoxCollider(transform.position - size, transform.position + size),
        container,
        100
     )
 {}
 
 Player::Player(const Player& other) :
-    Player(other.transform, other.color, other.controller, other.collider,
-           other.container, other.life)
-{
-    // TODO: Copy components.
-    setTag(other.getTag());
+    Player(other.controller, other.container, other.life)
+{}
+
+std::unique_ptr<Component> Player::clone() {
+    return std::make_unique<Player>(*this);
 }
 
-void Player::update() {
+void Player::initialize(GameObject& gameObject) {}
+
+void Player::update(GameObject& gameObject) {
     auto inputs = controller->readInput();
     sf::Vector2f vec(0, 0);
 
@@ -75,11 +66,13 @@ void Player::update() {
     auto ellapsed = now - lastShot;
 
     if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
-        sf::Vector2f vec = getDir() * BULLET_SPEED;
+        GameObject bullet(gameObject.transform);
+        bullet.setTag(gameObject.getTag());
+        bullet.addComponent<Bullet>(worldCollider);
+        RigidBody& rb = bullet.addComponent<RigidBody>(1.0f);
+        rb.setVelocity(gameObject.getDir() * BULLET_SPEED);
 
-        auto bullet = std::make_unique<Bullet>(transform, vec, sf::Color::White, worldCollider);
-        bullet->setTag(tag);
-        addGameObjectUnique(std::move(bullet));
+        GameObject::addGameObject(std::move(bullet));
 
         lastShot = getNow();
     }
@@ -87,53 +80,29 @@ void Player::update() {
     float norm = sqrt(vec.x * vec.x + vec.y * vec.y);
     if (norm > 0) vec /= norm;
 
-    applyForce(vec * IMPULSE);
+    RigidBody& rb = gameObject.getComponent<RigidBody>();
+    rb.applyForce(vec * IMPULSE);
 
-    sf::Vector2f prev = getPosition();
-
-    transform.position += vel;
-    vel *= DAMPENING;
-    vel += acc;
-    acc *= DAMPENING_ACC;
-
-    sf::Vector2f offset(PLAYER_SIZE, PLAYER_SIZE);
-    collider.leftTop = getPosition() - offset;
-    collider.rightBottom = getPosition() + offset;
+    BoxCollider& collider = gameObject.getComponent<BoxCollider>();
 
     if (collider.intersects(container)) {
-        setPosition(prev);
-        vel = sf::Vector2f(0, 0);
-        acc = sf::Vector2f(0, 0);
+        // TODO
     }
 
-    auto toBullet = [](std::unique_ptr<GameObject>& obj) {return obj->tryCast<Bullet>();};
-    auto notNull = [](Bullet* ptr) {return ptr != nullptr;};
-    auto hasSameTag = [&](Bullet *bullet) {return bullet->getTag() == tag;};
-    auto collides = [&](Bullet *bullet) {return collider.intersects(bullet->getCollider());};
+    auto isBulletHit = [&](GameObject& obj) {
+        return obj.hasComponent<Bullet>()
+            && obj.getTag() != gameObject.getTag()
+            && collider.intersects(obj.getComponent<BoxCollider>());
+    };
 
-    for (Bullet* bullet : getGameObjects()
-                        | views::transform(toBullet)
-                        | views::filter(notNull)
-                        | views::filter(hasSameTag)
-                        | views::filter(collides))
-    {
+    for (auto bullet : GameObject::getGameObjects() | views::filter(isBulletHit)) {
         life -= BULLET_DAMAGE;
-        bullet->destroy();
+        bullet.destroy();
     }
 
     if (life <= 0) {
-        destroy();
+        gameObject.destroy();
     }
-
-    mesh.update();
-}
-
-const sf::Drawable* Player::getMesh() const {
-    return &mesh;
-}
-
-void Player::applyForce(sf::Vector2f vec) {
-    acc += vec;
 }
 
 bool Player::isDead() {

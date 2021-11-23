@@ -3,54 +3,24 @@
 
 static const sf::Vector2f offset(BULLET_SIZE, BULLET_SIZE);
 
-Bullet::Bullet(
-    Transform transform,
-    sf::Vector2f vel,
-    sf::Color color,
-    BoxCollider collider,
-    BoxCollider container
-) :
-    GameObject(transform),
-    vel(vel),
-    color(color),
-    mesh(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)),
-    collider(collider),
+Bullet::Bullet(const Bullet& other) :
+    Bullet(other.container)
+{}
+
+Bullet::Bullet(BoxCollider container) :
     container(container)
 {}
 
-void Bullet::update() {
-    transform.position += vel;
+std::unique_ptr<Component> Bullet::clone() {
+    return std::make_unique<Bullet>(*this);
+}
 
-    sf::Vector2f offset(BULLET_SIZE, BULLET_SIZE);
-    collider.leftTop = getPosition() - offset;
-    collider.rightBottom = getPosition() + offset;
+void Bullet::initialize(GameObject& gameObject) {}
+
+void Bullet::update(GameObject& gameObject) {
+    BoxCollider& collider = gameObject.getComponent<BoxCollider>();
 
     if (collider.intersects(container)) {
-        destroy();
+        gameObject.destroy();
     }
-
-    mesh.setPosition(getPosition());
-}
-
-const sf::Drawable* Bullet::getMesh() const {
-    return &mesh;
-}
-
-Bullet::Bullet(
-    Transform transform,
-    sf::Vector2f vel,
-    sf::Color color,
-    BoxCollider container
-) :
-    Bullet(
-        transform,
-        vel,
-        color,
-        BoxCollider(transform.position - offset, transform.position + offset),
-        container
-    )
-{}
-
-BoxCollider& Bullet::getCollider() {
-    return collider;
 }
