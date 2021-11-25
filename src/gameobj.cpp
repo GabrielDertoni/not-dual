@@ -27,7 +27,6 @@ GameObject::GameObject(const GameObject& other) :
     transform(other.transform),
     shouldBeDestroyed(other.shouldBeDestroyed)
 {
-    // TODO: Copy components.
     setTag(other.getTag());
 
     for (auto& [key, component] : other.components) {
@@ -35,15 +34,12 @@ GameObject::GameObject(const GameObject& other) :
     }
 }
 
-GameObject::GameObject(const GameObject&& other) :
+GameObject::GameObject(GameObject&& other) :
     transform(other.transform),
     shouldBeDestroyed(other.shouldBeDestroyed)
 {
     tag = std::move(other.tag);
-
-    for (auto& [key, component] : other.components) {
-        components.insert(std::make_pair(key, component->clone()));
-    }
+    std::swap(components, other.components);
 }
 
 GameObject& GameObject::operator=(GameObject &&other) {
@@ -56,6 +52,13 @@ GameObject& GameObject::operator=(GameObject &&other) {
 
 void GameObject::destroy() {
     shouldBeDestroyed = true;
+}
+
+void GameObject::initialize(size_t self) {
+    for (auto& [key, component] : components) {
+        Behaviour *behaviour = dynamic_cast<Behaviour*>(component.get());
+        if (behaviour) behaviour->initialize(*this);
+    }
 }
 
 void GameObject::update(size_t self) {
@@ -126,10 +129,33 @@ void GameObject::destroyAllMarked() {
     }
 }
 
-void GameObject::addGameObject(GameObject gameObject) {
+size_t GameObject::addGameObject(GameObject gameObject) {
     instances.push_back(gameObject);
+    return instances.size() - 1;
 }
 
 std::vector<GameObject>& GameObject::getGameObjects() {
     return instances;
+}
+
+/* GameObjectBuilder */
+
+GameObjectBuilder::GameObjectBuilder(Transform transform) :
+    transform(transform)
+{}
+
+GameObjectBuilder& GameObjectBuilder::withTag(std::string&& tag) {
+    tag = std::move(tag);
+    return *this;
+}
+
+GameObject GameObjectBuilder::build() {
+    GameObject obj = GameObject(transform);
+    obj.tag = std::move(tag);
+    std::swap(obj.components, components);
+    return obj;
+}
+
+size_t GameObjectBuilder::registerGameObject() {
+    return GameObject::addGameObject(build());
 }

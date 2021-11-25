@@ -8,17 +8,18 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "includes/player.hpp"
 #include "includes/gameobj.hpp"
+#include "includes/player.hpp"
+#include "includes/renderer.hpp"
+#include "includes/rigidbody.hpp"
 #include "includes/input.hpp"
 #include "includes/settings.hpp"
+#include "includes/rendering.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 
 std::binary_semaphore gameLoopStart(0);
 std::binary_semaphore gameLoopDone(1);
-
-std::deque<const sf::Drawable*> drawQueue;
 
 bool done;
 
@@ -72,19 +73,26 @@ int main() {
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
-    GameObject p1(Transform(leftPlayerStartPos, 0));
-    p1.setTag("Player1");
-    p1.addComponent<Player>(&wasdController, leftCollider);
-    p1.addComponent<Spaceship>(sf::Color::Green, PLAYER_SIZE);
-    p1.addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize));
-    GameObject::addGameObject(std::move(p1));
+    GameObjectBuilder(Transform(leftPlayerStartPos, 0))
+        .withTag("Player1")
+        .addComponent<Player>(&wasdController, leftCollider)
+        .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Green, PLAYER_SIZE));})
+        .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
+        .addComponent<RigidBody>(1.0f)
+        .registerGameObject();
 
-    GameObject p2(Transform(rightPlayerStartPos, 0));
-    p2.setTag("Player2");
-    p2.addComponent<Player>(&arrowsController, rightCollider);
-    p2.addComponent<Spaceship>(sf::Color::Blue, PLAYER_SIZE);
-    p1.addComponent<BoxCollider>(rightCollider);
-    GameObject::addGameObject(std::move(p2));
+    GameObjectBuilder(Transform(rightPlayerStartPos, 0))
+        .withTag("Player2")
+        .addComponent<Player>(&arrowsController, rightCollider)
+        .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Blue, PLAYER_SIZE));})
+        .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
+        .addComponent<RigidBody>(1.0f)
+        .registerGameObject();
+
+    auto objs = GameObject::getGameObjects();
+    for (size_t i = 0; i < objs.size(); i++) {
+        objs[i].initialize(i);
+    }
 
     std::thread gameThread(gameLoop);
 
@@ -110,11 +118,7 @@ int main() {
         }
 
         // Push stuff to the draw queue
-        /*
-        for (auto& obj : GameObject::getGameObjects()) {
-            drawQueue.push_back(obj.getMesh());
-        }
-        */
+        setupDrawQueue();
         drawQueue.push_back(&divisionLine);
 
         populateEventQueue(window);

@@ -66,13 +66,14 @@ void Player::update(GameObject& gameObject) {
     auto ellapsed = now - lastShot;
 
     if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
-        GameObject bullet(gameObject.transform);
-        bullet.setTag(gameObject.getTag());
-        bullet.addComponent<Bullet>(worldCollider);
-        RigidBody& rb = bullet.addComponent<RigidBody>(1.0f);
-        rb.setVelocity(gameObject.getDir() * BULLET_SPEED);
-
-        GameObject::addGameObject(std::move(bullet));
+        GameObjectBuilder(gameObject.transform)
+            .withTag(std::string(gameObject.getTag()))
+            .addComponentFrom([&]{
+                RigidBody rb(1.0f);
+                rb.setVelocity(gameObject.getDir() * BULLET_SPEED);
+                return rb;
+            })
+            .registerGameObject();
 
         lastShot = getNow();
     }
