@@ -23,7 +23,6 @@ Spaceship::Spaceship(const Spaceship& other) :
     shape(other.shape),
     matrix(other.matrix)
 {
-    printf("Copied\n");
     shape.setFillColor(other.shape.getFillColor());
 }
 
@@ -52,6 +51,6 @@ void Spaceship::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(shape, states);
 }
 
-std::unique_ptr<Component> Spaceship::clone() {
+std::unique_ptr<DrawableClonable> Spaceship::clone() const {
     return std::make_unique<Spaceship>(*this);
 }

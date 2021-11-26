@@ -18,11 +18,8 @@ public:
     virtual void update(GameObject& gameObject);
     virtual std::unique_ptr<Component> clone();
 
-    Bullet(const Bullet& other);
-    Bullet(BoxCollider container);
-
-private:
-    BoxCollider container;
+    Bullet() = default;
+    Bullet(const Bullet& other) = default;
 };
 
 #endif

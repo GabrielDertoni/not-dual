@@ -19,11 +19,11 @@ public:
 
     virtual std::unique_ptr<Component> clone();
 
-private:
     float mass;
     sf::Vector2f velocity;
     sf::Vector2f acceleration;
 
+private:
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
 };

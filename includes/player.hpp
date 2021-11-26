@@ -37,17 +37,21 @@ class Player: public Behaviour {
 public:
     bool isDead();
 
+    enum Side {
+        LEFT, RIGHT
+    };
+
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
     virtual std::unique_ptr<Component> clone();
 
-    Player(Controller* controller, BoxCollider container);
-    Player(Controller* controller, BoxCollider container, float life);
+    Player(Controller* controller, Side side);
+    Player(Controller* controller, Side side, float life);
     Player(const Player& other);
 
 private:
     float life;
-    BoxCollider container;
+    Side side;
     Controller* controller;
 
     Timestamp lastShot;

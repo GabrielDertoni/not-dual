@@ -9,6 +9,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include <SFML/Graphics/Transform.hpp>
 #include <SFML/Graphics/Drawable.hpp>
@@ -22,6 +23,7 @@ public:
 
     // Clone the component. Most implementation should just call the copy
     // constructor of the concrete class.
+    // TODO: Make `virtual std::unique_ptr<Component> clone() const = 0`
     virtual std::unique_ptr<Component> clone() = 0;
 };
 

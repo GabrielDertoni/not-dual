@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
+#include <array>
 #include <ranges>
+#include <math.h>
 
 namespace views = std::views;
 
@@ -18,15 +20,13 @@ namespace views = std::views;
 
 static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
-static const BoxCollider worldCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH, HEIGHT), true);
-
 Player::Player(
     Controller* controller,
-    BoxCollider container,
+    Player::Side side,
     float life
 ) :
     life(life),
-    container(container),
+    side(side),
     controller(controller)
 {
     lastShot = getNow();
@@ -34,17 +34,17 @@ Player::Player(
 
 Player::Player(
     Controller* controller,
-    BoxCollider container
+    Player::Side side
 ) :
     Player(
        controller,
-       container,
+       side,
        100
     )
 {}
 
 Player::Player(const Player& other) :
-    Player(other.controller, other.container, other.life)
+    Player(other.controller, other.side, other.life)
 {}
 
 std::unique_ptr<Component> Player::clone() {
@@ -55,6 +55,30 @@ void Player::initialize(GameObject& gameObject) {}
 
 void Player::update(GameObject& gameObject) {
     auto inputs = controller->readInput();
+
+    Timestamp now = getNow();
+    auto ellapsed = now - lastShot;
+
+    if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
+        GameObjectBuilder(gameObject.transform)
+            .withTag(std::string(gameObject.getTag()))
+            .addComponent<Bullet>()
+            .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
+            .addComponentFrom([&] {
+                RigidBody rb(1.0f);
+                sf::Vector2f dir;
+                dir.x = side == LEFT ? 1 : -1;
+                rb.setVelocity(dir * BULLET_SPEED);
+                return rb;
+            })
+            .addComponent<Renderer>(RectangleShape(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)))
+            .registerGameObject();
+
+        lastShot = getNow();
+    }
+
+    BoxCollider& collider = gameObject.getComponent<BoxCollider>();
+
     sf::Vector2f vec(0, 0);
 
     if (inputs[Controller::Up   ]) vec.y += -1;
@@ -64,34 +88,51 @@ void Player::update(GameObject& gameObject) {
 
     float norm = sqrt(vec.x * vec.x + vec.y * vec.y);
     if (norm > 0) vec /= norm;
+    vec *= IMPULSE;
 
     RigidBody& rb = gameObject.getComponent<RigidBody>();
-    rb.applyForce(vec * IMPULSE);
+    rb.applyForce(vec);
 
-    Timestamp now = getNow();
-    auto ellapsed = now - lastShot;
+    sf::Vector2f zero(0, 0);
+    std::array<sf::Vector2f, 4> normals;
 
-    if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
-        GameObjectBuilder(gameObject.transform)
-            .withTag(std::string(gameObject.getTag()))
-            .addComponent<Bullet>(worldCollider)
-            .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
-            .addComponentFrom([&] {
-                RigidBody rb(1.0f);
-                rb.setVelocity(gameObject.getDir() * BULLET_SPEED);
-                return rb;
-            })
-            .addComponentUnique<Renderer>(std::make_unique<RectangleShape>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)))
-            .registerGameObject();
-
-        lastShot = getNow();
+    if (side == LEFT) {
+       normals = {
+            collider.gLeftTop.x <= 0             ? sf::Vector2f( 1,  0) : zero,
+            collider.gLeftTop.y <= 0             ? sf::Vector2f( 0,  1) : zero,
+            collider.gRightBottom.x >= WIDTH / 2 ? sf::Vector2f(-1,  0) : zero,
+            collider.gRightBottom.y >= HEIGHT    ? sf::Vector2f( 0, -1) : zero,
+        };
+    } else {
+       normals = {
+            collider.gLeftTop.x <= WIDTH / 2  ? sf::Vector2f( 1,  0) : zero,
+            collider.gLeftTop.y <= 0          ? sf::Vector2f( 0,  1) : zero,
+            collider.gRightBottom.x >= WIDTH  ? sf::Vector2f(-1,  0) : zero,
+            collider.gRightBottom.y >= HEIGHT ? sf::Vector2f( 0, -1) : zero,
+        };
     }
 
-    BoxCollider& collider = gameObject.getComponent<BoxCollider>();
+    sf::Vector2f res = rb.velocity;
+    for (sf::Vector2f normal : normals) {
+        if (fabs(normal.x) > 0 || fabs(normal.y) > 0) {
+            float normal_v_prod = normal.x * res.x + normal.y * res.y;
+            if (normal_v_prod < 0) {
+                float v_v_prod = res.x * res.x + res.y * res.y;
+                float mag = sqrt(v_v_prod - normal_v_prod * normal_v_prod);
+                float cross = normal.x * res.y - normal.y * res.x;
 
-    if (collider.intersects(container)) {
-        // TODO: check if player is out of world bounds.
+                sf::Vector2f perp;
+                if (cross < 0) {
+                    perp = sf::Vector2f(normal.y, -normal.x);
+                } else {
+                    perp = sf::Vector2f(-normal.y, normal.x);
+                }
+
+                res = perp * mag;
+            }
+        }
     }
+    rb.velocity = res;
 
     auto isBulletHit = [&](GameObject& obj) {
         return obj.hasComponent<Bullet>()
@@ -99,7 +140,9 @@ void Player::update(GameObject& gameObject) {
             && collider.intersects(obj.getComponent<BoxCollider>());
     };
 
-    for (auto& bullet : GameObject::getGameObjects() | views::filter(isBulletHit)) {
+    for (auto& bullet : GameObject::getGameObjects()
+                      | views::filter(isBulletHit))
+    {
         life -= BULLET_DAMAGE;
         bullet.destroy();
     }

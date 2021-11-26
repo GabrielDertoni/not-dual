@@ -10,15 +10,16 @@ public:
     sf::Vector2f leftTop;
     sf::Vector2f rightBottom;
 
-    BoxCollider(sf::Vector2f leftTop, sf::Vector2f rightBottom, bool inverted = false) :
+    sf::Vector2f gLeftTop;
+    sf::Vector2f gRightBottom;
+
+    BoxCollider(sf::Vector2f leftTop, sf::Vector2f rightBottom) :
         leftTop(leftTop),
-        rightBottom(rightBottom),
-        inverted(inverted)
+        rightBottom(rightBottom)
     {}
-    BoxCollider(sf::Vector2f size, bool inverted = false) :
+    BoxCollider(sf::Vector2f size) :
         leftTop(-size/2.0f),
-        rightBottom(size/2.0f),
-        inverted(inverted)
+        rightBottom(size/2.0f)
     {}
     BoxCollider(const BoxCollider& other);
 
@@ -28,9 +29,6 @@ public:
 
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
-
-private:
-    bool inverted;
 };
 
 #endif

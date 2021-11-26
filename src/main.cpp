@@ -25,9 +25,6 @@ bool done;
 
 bool gameIsOver = false;
 
-static const BoxCollider leftCollider  = BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true);
-static const BoxCollider rightCollider = BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true);
-
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
 
@@ -66,7 +63,7 @@ void populateEventQueue(sf::RenderWindow& window) {
     }
 }
 
-std::deque<std::pair<sf::Transform, sf::Drawable*>> dq;
+std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> dq;
 
 int main() {
     sf::ContextSettings settings;
@@ -79,22 +76,22 @@ int main() {
 
     GameObjectBuilder(Transform(leftPlayerStartPos, 0))
         .withTag("Player1")
-        .addComponent<Player>(&wasdController, leftCollider)
-        // .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Green, PLAYER_SIZE));})
-        // .addComponent<Renderer>(Spaceship(sf::Color::Green, PLAYER_SIZE))
-        .addComponentUnique<Renderer>(std::make_unique<Spaceship>(sf::Color::Green, PLAYER_SIZE))
+        .addComponent<Player>(&wasdController, Player::LEFT)
+        .addComponent<Renderer>(Spaceship(sf::Color::Green, PLAYER_SIZE))
         .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
         .addComponent<RigidBody>(1.0f)
         .registerGameObject();
 
     GameObjectBuilder(Transform(rightPlayerStartPos, 0))
         .withTag("Player2")
-        .addComponent<Player>(&arrowsController, rightCollider)
-        // .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Blue, PLAYER_SIZE));})
-        // .addComponent<Renderer>(Spaceship(sf::Color::Blue, PLAYER_SIZE))
-        .addComponentUnique<Renderer>(std::make_unique<Spaceship>(sf::Color::Blue, PLAYER_SIZE))
+        .addComponent<Player>(&arrowsController, Player::RIGHT)
+        .addComponent<Renderer>(Spaceship(sf::Color::Blue, PLAYER_SIZE))
         .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
         .addComponent<RigidBody>(1.0f)
+        .registerGameObject();
+
+    GameObjectBuilder(Transform(sf::Vector2f(WIDTH/2 - 1, 0), 0))
+        .addComponent<Renderer>(RectangleShape(sf::Vector2f(2, HEIGHT)))
         .registerGameObject();
 
     std::vector<GameObject>& objs = GameObject::getGameObjects();
@@ -131,13 +128,14 @@ int main() {
         // Push stuff to the draw queue
         for (auto& obj : GameObject::getGameObjects()) {
             if (obj.hasComponent<Renderer>()) {
-                Renderer& renderer = obj.getComponent<Renderer>();
-                dq.push_back(std::make_pair(obj.transform.getTranformMatrix(), &renderer));
+                std::unique_ptr<Component> comp = obj.getComponent<Renderer>().clone();
+                std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
+                dq.push_back(std::make_pair(obj.transform.getTranformMatrix(), std::move(renderer)));
             }
         }
 
         // setupDrawQueue();
-        dq.push_back(std::make_pair(sf::Transform(), &divisionLine));
+        // dq.push_back(std::make_pair(sf::Transform(), &divisionLine));
 
         populateEventQueue(window);
 
