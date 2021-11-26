@@ -18,8 +18,6 @@
 #define PLAYER_SIZE   20
 // How much force is applied when the player presses a button.
 #define IMPULSE       0.2f
-#define DAMPENING     0.97f
-#define DAMPENING_ACC 0.5f
 
 #define BULLET_SPEED  5.0f
 #define BULLET_DAMAGE 10
@@ -35,34 +33,25 @@ public:
     virtual std::bitset<NumInputs> readInput() = 0;
 };
 
-class Player: public GameObject {
+class Player: public Behaviour {
 public:
-    void setRotation(float ang);
-    void applyForce(sf::Vector2f vec);
     bool isDead();
 
-    virtual void update();
-    virtual const sf::Drawable* getMesh() const;
+    enum Side {
+        LEFT, RIGHT
+    };
 
-    Player(Transform transform, sf::Color color,
-           Controller* controller, BoxCollider container);
-    Player(Transform transform, sf::Color color,
-           Controller* controller, BoxCollider collider,
-           BoxCollider container, float life);
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
+    virtual std::unique_ptr<Component> clone();
+
+    Player(Controller* controller, Side side);
+    Player(Controller* controller, Side side, float life);
     Player(const Player& other);
 
 private:
-    sf::Vector2f vel;
-    sf::Vector2f acc;
-
     float life;
-
-    sf::Color color;
-    Spaceship mesh;
-    BoxCollider collider;
-
-    BoxCollider container;
-
+    Side side;
     Controller* controller;
 
     Timestamp lastShot;

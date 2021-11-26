@@ -2,7 +2,6 @@
 #include <math.h>
 
 #include "includes/gameobj.hpp"
-#include "includes/gamestate.hpp"
 
 Transform::Transform(sf::Vector2f position, float angle) :
     position(position),
@@ -13,17 +12,63 @@ Transform::Transform(const Transform& other) :
     Transform(other.position, other.angle)
 {}
 
+sf::Transform Transform::getTranformMatrix() {
+    sf::Transform t;
+    t.rotate(angle).translate(position);
+    return t;
+}
+
 GameObject::GameObject(Transform transform) :
     transform(transform),
     shouldBeDestroyed(false)
 {}
 
+/*
+GameObject::GameObject(const GameObject& other) :
+    transform(other.transform),
+    shouldBeDestroyed(other.shouldBeDestroyed)
+{
+    std::cout << "GameObject copied" << std::endl;
+    setTag(other.getTag());
+
+    for (auto& [key, component] : other.components) {
+        addComponentUniqueWithId(key, component->clone());
+    }
+}
+*/
+
+GameObject::GameObject(GameObject&& other) :
+    transform(other.transform),
+    shouldBeDestroyed(other.shouldBeDestroyed)
+{
+    tag = std::move(other.tag);
+    std::swap(components, other.components);
+}
+
+GameObject& GameObject::operator=(GameObject &&other) {
+    transform = other.transform;
+    shouldBeDestroyed = other.shouldBeDestroyed;
+    tag = std::move(other.tag);
+    components = std::move(other.components);
+    return *this;
+}
+
 void GameObject::destroy() {
     shouldBeDestroyed = true;
 }
 
-void GameObject::callUpdate(size_t self) {
-    update();
+void GameObject::initialize(size_t self) {
+    for (auto& [key, component] : components) {
+        Behaviour *behaviour = dynamic_cast<Behaviour*>(component.get());
+        if (behaviour) behaviour->initialize(*this);
+    }
+}
+
+void GameObject::update(size_t self) {
+    for (auto& [key, component] : components) {
+        Behaviour *behaviour = dynamic_cast<Behaviour*>(component.get());
+        if (behaviour) behaviour->update(*this);
+    }
 
     if (shouldBeDestroyed) {
         markForDestruction(self);
@@ -61,4 +106,66 @@ float GameObject::getRotationRad() const {
 sf::Vector2f GameObject::getDir() const {
     float ang = getRotationRad();
     return sf::Vector2f(cos(ang), sin(ang));
+}
+
+void GameObject::addComponentUniqueWithId(size_t id, std::unique_ptr<Component> component) {
+    components.insert(std::make_pair(id, std::move(component)));
+}
+
+Component::Component() {}
+
+/* Static stuff */
+
+std::vector<GameObject> GameObject::instances;
+std::deque<size_t> GameObject::destroyQueue;
+std::deque<GameObject> GameObject::instantiateQueue;
+
+void GameObject::markForDestruction(size_t idx) {
+    destroyQueue.push_back(idx);
+}
+
+void GameObject::destroyAllMarked() {
+    while (!destroyQueue.empty()) {
+        // Swap with last element end remove. O(1)
+        std::swap(instances[destroyQueue.front()], *--instances.end());
+        instances.pop_back();
+        destroyQueue.pop_front();
+    }
+}
+
+void GameObject::instantiateAllMarked() {
+    while (!instantiateQueue.empty()) {
+        instances.push_back(std::move(instantiateQueue.front()));
+        instantiateQueue.pop_front();
+    }
+}
+
+void GameObject::addGameObject(GameObject gameObject) {
+    instantiateQueue.push_back(std::move(gameObject));
+}
+
+std::vector<GameObject>& GameObject::getGameObjects() {
+    return instances;
+}
+
+/* GameObjectBuilder */
+
+GameObjectBuilder::GameObjectBuilder(Transform transform) :
+    transform(transform)
+{}
+
+GameObjectBuilder& GameObjectBuilder::withTag(std::string&& tag) {
+    this->tag = std::move(tag);
+    return *this;
+}
+
+GameObject GameObjectBuilder::build() {
+    GameObject obj = GameObject(transform);
+    obj.tag = std::move(tag);
+    std::swap(obj.components, components);
+    return obj;
+}
+
+void GameObjectBuilder::registerGameObject() {
+    GameObject::addGameObject(build());
 }

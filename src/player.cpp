@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
+#include <array>
 #include <ranges>
+#include <math.h>
 
 namespace views = std::views;
 
@@ -10,60 +12,73 @@ namespace views = std::views;
 #include <SFML/Window/Keyboard.hpp>
 
 #include "includes/collider.hpp"
-#include "includes/gamestate.hpp"
 #include "includes/player.hpp"
+#include "includes/rigidbody.hpp"
 #include "includes/bullet.hpp"
 #include "includes/input.hpp"
+#include "includes/settings.hpp"
 
 static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
 Player::Player(
-    Transform transform,
-    sf::Color color,
     Controller* controller,
-    BoxCollider collider,
-    BoxCollider container,
+    Player::Side side,
     float life
 ) :
-    GameObject(transform),
-    vel(0, 0),
-    acc(0, 0),
     life(life),
-    color(color),
-    mesh(this, color, PLAYER_SIZE),
-    collider(collider),
-    container(container),
+    side(side),
     controller(controller)
 {
     lastShot = getNow();
 }
 
 Player::Player(
-    Transform transform,
-    sf::Color color,
     Controller* controller,
-    BoxCollider container
+    Player::Side side
 ) :
     Player(
-       transform,
-       color,
        controller,
-       BoxCollider(transform.position - size, transform.position + size),
-       container,
+       side,
        100
     )
 {}
 
 Player::Player(const Player& other) :
-    Player(other.transform, other.color, other.controller, other.collider,
-           other.container, other.life)
-{
-    // TODO: Copy components.
-    setTag(other.getTag());
+    Player(other.controller, other.side, other.life)
+{}
+
+std::unique_ptr<Component> Player::clone() {
+    return std::make_unique<Player>(*this);
 }
 
-void Player::update() {
+void Player::initialize(GameObject& gameObject) {}
+
+void Player::update(GameObject& gameObject) {
     auto inputs = controller->readInput();
+
+    Timestamp now = getNow();
+    auto ellapsed = now - lastShot;
+
+    if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
+        GameObjectBuilder(gameObject.transform)
+            .withTag(std::string(gameObject.getTag()))
+            .addComponent<Bullet>()
+            .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
+            .addComponentFrom([&] {
+                RigidBody rb(1.0f);
+                sf::Vector2f dir;
+                dir.x = side == LEFT ? 1 : -1;
+                rb.setVelocity(dir * BULLET_SPEED);
+                return rb;
+            })
+            .addComponent<Renderer>(RectangleShape(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)))
+            .registerGameObject();
+
+        lastShot = getNow();
+    }
+
+    BoxCollider& collider = gameObject.getComponent<BoxCollider>();
+
     sf::Vector2f vec(0, 0);
 
     if (inputs[Controller::Up   ]) vec.y += -1;
@@ -71,69 +86,70 @@ void Player::update() {
     if (inputs[Controller::Left ]) vec.x += -1;
     if (inputs[Controller::Right]) vec.x +=  1;
 
-    Timestamp now = getNow();
-    auto ellapsed = now - lastShot;
-
-    if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
-        sf::Vector2f vec = getDir() * BULLET_SPEED;
-
-        auto bullet = std::make_unique<Bullet>(transform, vec, sf::Color::White, worldCollider);
-        bullet->setTag(tag);
-        addGameObjectUnique(std::move(bullet));
-
-        lastShot = getNow();
-    }
-
     float norm = sqrt(vec.x * vec.x + vec.y * vec.y);
     if (norm > 0) vec /= norm;
+    vec *= IMPULSE;
 
-    applyForce(vec * IMPULSE);
+    RigidBody& rb = gameObject.getComponent<RigidBody>();
+    rb.applyForce(vec);
 
-    sf::Vector2f prev = getPosition();
+    sf::Vector2f zero(0, 0);
+    std::array<sf::Vector2f, 4> normals;
 
-    transform.position += vel;
-    vel *= DAMPENING;
-    vel += acc;
-    acc *= DAMPENING_ACC;
-
-    sf::Vector2f offset(PLAYER_SIZE, PLAYER_SIZE);
-    collider.leftTop = getPosition() - offset;
-    collider.rightBottom = getPosition() + offset;
-
-    if (collider.intersects(container)) {
-        setPosition(prev);
-        vel = sf::Vector2f(0, 0);
-        acc = sf::Vector2f(0, 0);
+    if (side == LEFT) {
+       normals = {
+            collider.gLeftTop.x <= 0             ? sf::Vector2f( 1,  0) : zero,
+            collider.gLeftTop.y <= 0             ? sf::Vector2f( 0,  1) : zero,
+            collider.gRightBottom.x >= WIDTH / 2 ? sf::Vector2f(-1,  0) : zero,
+            collider.gRightBottom.y >= HEIGHT    ? sf::Vector2f( 0, -1) : zero,
+        };
+    } else {
+       normals = {
+            collider.gLeftTop.x <= WIDTH / 2  ? sf::Vector2f( 1,  0) : zero,
+            collider.gLeftTop.y <= 0          ? sf::Vector2f( 0,  1) : zero,
+            collider.gRightBottom.x >= WIDTH  ? sf::Vector2f(-1,  0) : zero,
+            collider.gRightBottom.y >= HEIGHT ? sf::Vector2f( 0, -1) : zero,
+        };
     }
 
-    auto toBullet = [](std::unique_ptr<GameObject>& obj) {return obj->tryCast<Bullet>();};
-    auto notNull = [](Bullet* ptr) {return ptr != nullptr;};
-    auto hasSameTag = [&](Bullet *bullet) {return bullet->getTag() == tag;};
-    auto collides = [&](Bullet *bullet) {return collider.intersects(bullet->getCollider());};
+    sf::Vector2f res = rb.velocity;
+    for (sf::Vector2f normal : normals) {
+        if (fabs(normal.x) > 0 || fabs(normal.y) > 0) {
+            float normal_v_prod = normal.x * res.x + normal.y * res.y;
+            if (normal_v_prod < 0) {
+                float v_v_prod = res.x * res.x + res.y * res.y;
+                float mag = sqrt(v_v_prod - normal_v_prod * normal_v_prod);
+                float cross = normal.x * res.y - normal.y * res.x;
 
-    for (Bullet* bullet : getGameObjects()
-                        | views::transform(toBullet)
-                        | views::filter(notNull)
-                        | views::filter(hasSameTag)
-                        | views::filter(collides))
+                sf::Vector2f perp;
+                if (cross < 0) {
+                    perp = sf::Vector2f(normal.y, -normal.x);
+                } else {
+                    perp = sf::Vector2f(-normal.y, normal.x);
+                }
+
+                res = perp * mag;
+            }
+        }
+    }
+    rb.velocity = res;
+
+    auto isBulletHit = [&](GameObject& obj) {
+        return obj.hasComponent<Bullet>()
+            && obj.getTag() != gameObject.getTag()
+            && collider.intersects(obj.getComponent<BoxCollider>());
+    };
+
+    for (auto& bullet : GameObject::getGameObjects()
+                      | views::filter(isBulletHit))
     {
         life -= BULLET_DAMAGE;
-        bullet->destroy();
+        bullet.destroy();
     }
 
     if (life <= 0) {
-        destroy();
+        gameObject.destroy();
     }
-
-    mesh.update();
-}
-
-const sf::Drawable* Player::getMesh() const {
-    return &mesh;
-}
-
-void Player::applyForce(sf::Vector2f vec) {
-    acc += vec;
 }
 
 bool Player::isDead() {

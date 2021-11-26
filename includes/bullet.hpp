@@ -12,27 +12,14 @@
 
 #define BULLET_SIZE 5
 
-class Bullet: public GameObject {
+class Bullet: public Behaviour {
 public:
-    virtual void update();
-    virtual const sf::Drawable* getMesh() const;
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
+    virtual std::unique_ptr<Component> clone();
 
-    Bullet(Transform transform, sf::Vector2f vel, sf::Color color,
-           BoxCollider container);
-    Bullet(Transform transform, sf::Vector2f vel, sf::Color color,
-           BoxCollider collider, BoxCollider container);
-
-    BoxCollider& getCollider();
-
-private:
-    sf::Vector2f vel;
-
-    sf::Color color;
-    sf::RectangleShape mesh;
-    BoxCollider collider;
-
-    BoxCollider container;
-
+    Bullet() = default;
+    Bullet(const Bullet& other) = default;
 };
 
 #endif

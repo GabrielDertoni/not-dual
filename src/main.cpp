@@ -8,24 +8,22 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "includes/player.hpp"
 #include "includes/gameobj.hpp"
-#include "includes/gamestate.hpp"
+#include "includes/player.hpp"
+#include "includes/renderer.hpp"
+#include "includes/rigidbody.hpp"
 #include "includes/input.hpp"
+#include "includes/settings.hpp"
+#include "includes/rendering.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 
 std::binary_semaphore gameLoopStart(0);
 std::binary_semaphore gameLoopDone(1);
 
-std::deque<const sf::Drawable*> drawQueue;
-
 bool done;
 
 bool gameIsOver = false;
-
-static const BoxCollider leftCollider  = BoxCollider(sf::Vector2f(0, 0), sf::Vector2f(WIDTH / 2, HEIGHT), true);
-static const BoxCollider rightCollider = BoxCollider(sf::Vector2f(WIDTH / 2, 0), sf::Vector2f(WIDTH, HEIGHT), true);
 
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
@@ -35,11 +33,14 @@ void gameLoop() {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        for (size_t i = 0; i < gameObjects.size(); i++) {
-            gameObjects[i]->callUpdate(i);
+        std::vector<GameObject>& objs = GameObject::getGameObjects();
+        for (size_t i = 0; i < objs.size(); i++) {
+            objs[i].update(i);
         }
 
-        destroyAllMarked();
+        // Destruction MUST HAPPEN BEFORE instantiation.
+        GameObject::destroyAllMarked();
+        GameObject::instantiateAllMarked();
 
         if (gameIsOver) {
             
@@ -62,6 +63,8 @@ void populateEventQueue(sf::RenderWindow& window) {
     }
 }
 
+std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> dq;
+
 int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
@@ -71,19 +74,30 @@ int main() {
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
-    Player p1(Transform(leftPlayerStartPos, 0),
-              sf::Color::Green,
-              &wasdController,
-              leftCollider);
-    p1.setTag("Player1");
-    addGameObject(p1);
+    GameObjectBuilder(Transform(leftPlayerStartPos, 0))
+        .withTag("Player1")
+        .addComponent<Player>(&wasdController, Player::LEFT)
+        .addComponent<Renderer>(Spaceship(sf::Color::Green, PLAYER_SIZE))
+        .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
+        .addComponent<RigidBody>(1.0f)
+        .registerGameObject();
 
-    Player p2(Transform(rightPlayerStartPos, 180),
-              sf::Color::Red,
-              &arrowsController,
-              rightCollider);
-    p2.setTag("Player2");
-    addGameObject(p2);
+    GameObjectBuilder(Transform(rightPlayerStartPos, 0))
+        .withTag("Player2")
+        .addComponent<Player>(&arrowsController, Player::RIGHT)
+        .addComponent<Renderer>(Spaceship(sf::Color::Blue, PLAYER_SIZE))
+        .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
+        .addComponent<RigidBody>(1.0f)
+        .registerGameObject();
+
+    GameObjectBuilder(Transform(sf::Vector2f(WIDTH/2 - 1, 0), 0))
+        .addComponent<Renderer>(RectangleShape(sf::Vector2f(2, HEIGHT)))
+        .registerGameObject();
+
+    std::vector<GameObject>& objs = GameObject::getGameObjects();
+    for (size_t i = 0; i < objs.size(); i++) {
+        objs[i].initialize(i);
+    }
 
     std::thread gameThread(gameLoop);
 
@@ -94,9 +108,12 @@ int main() {
         gameLoopStart.release();
 
         window.clear();
-        while (!drawQueue.empty()) {
-            window.draw(*drawQueue.front());
-            drawQueue.pop_front();
+        while (!dq.empty()) {
+            auto& [transform, drawable] = dq.front();
+            sf::RenderStates states = sf::RenderStates::Default;
+            states.transform *= transform;
+            window.draw(*drawable, states);
+            dq.pop_front();
         }
         window.display();
 
@@ -109,10 +126,16 @@ int main() {
         }
 
         // Push stuff to the draw queue
-        for (auto& obj : gameObjects) {
-            drawQueue.push_back(obj->getMesh());
+        for (auto& obj : GameObject::getGameObjects()) {
+            if (obj.hasComponent<Renderer>()) {
+                std::unique_ptr<Component> comp = obj.getComponent<Renderer>().clone();
+                std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
+                dq.push_back(std::make_pair(obj.transform.getTranformMatrix(), std::move(renderer)));
+            }
         }
-        drawQueue.push_back(&divisionLine);
+
+        // setupDrawQueue();
+        // dq.push_back(std::make_pair(sf::Transform(), &divisionLine));
 
         populateEventQueue(window);
 

@@ -8,19 +8,22 @@
 #include <SFML/Window/Event.hpp>
 
 #include "includes/gameobj.hpp"
+#include "includes/renderer.hpp"
 
-class Spaceship: public sf::Drawable {
+class Spaceship: public DrawableClonable {
 public:
-    Spaceship(GameObject* gameObject, sf::Color color, float size);
+    Spaceship(sf::Color color, float size);
+    Spaceship(const Spaceship& other);
 
-    void update();
+    void setTransformMatrix(sf::Transform matrix);
+
+    virtual std::unique_ptr<DrawableClonable> clone() const;
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
 private:
-    GameObject* gameObject;
-
     float size;
     sf::RectangleShape shape;
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+    sf::Transform matrix;
 };
 
 #endif

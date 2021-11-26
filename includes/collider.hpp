@@ -3,21 +3,32 @@
 
 #include <SFML/System/Vector2.hpp>
 
-class BoxCollider {
+#include "includes/gameobj.hpp"
+
+class BoxCollider: public Behaviour {
 public:
-    BoxCollider(sf::Vector2f leftTop, sf::Vector2f rightBottom, bool inverted = false) :
-        leftTop(leftTop),
-        rightBottom(rightBottom),
-        inverted(inverted)
-    {}
-
-    bool intersects(BoxCollider& other);
-
     sf::Vector2f leftTop;
     sf::Vector2f rightBottom;
 
-private:
-    bool inverted;
+    sf::Vector2f gLeftTop;
+    sf::Vector2f gRightBottom;
+
+    BoxCollider(sf::Vector2f leftTop, sf::Vector2f rightBottom) :
+        leftTop(leftTop),
+        rightBottom(rightBottom)
+    {}
+    BoxCollider(sf::Vector2f size) :
+        leftTop(-size/2.0f),
+        rightBottom(size/2.0f)
+    {}
+    BoxCollider(const BoxCollider& other);
+
+    bool intersects(BoxCollider& other);
+
+    virtual std::unique_ptr<Component> clone();
+
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
 };
 
 #endif
