@@ -22,7 +22,7 @@ void RigidBody::initialize(GameObject& gameObject) {}
 void RigidBody::update(GameObject& gameObject) {
     gameObject.transform.position += velocity;
     velocity += acceleration;
-    velocity *= DAMPENING;
+    // velocity *= DAMPENING;
     // acceleration = sf::Vector2f(0, 0);
     acceleration *= DAMPENING_ACC;
 }

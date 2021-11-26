@@ -8,20 +8,22 @@
 #include <SFML/Window/Event.hpp>
 
 #include "includes/gameobj.hpp"
+#include "includes/renderer.hpp"
 
-class Spaceship: public sf::Drawable {
+class Spaceship: public Renderer {
 public:
     Spaceship(sf::Color color, float size);
     Spaceship(const Spaceship& other);
 
     void setTransformMatrix(sf::Transform matrix);
 
+    virtual std::unique_ptr<Component> clone();
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+
 private:
     float size;
     sf::RectangleShape shape;
     sf::Transform matrix;
-
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
 
 #endif

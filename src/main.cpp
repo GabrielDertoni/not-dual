@@ -36,12 +36,14 @@ void gameLoop() {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        auto objs = GameObject::getGameObjects();
+        std::vector<GameObject>& objs = GameObject::getGameObjects();
         for (size_t i = 0; i < objs.size(); i++) {
             objs[i].update(i);
         }
 
+        // Destruction MUST HAPPEN BEFORE instantiation.
         GameObject::destroyAllMarked();
+        GameObject::instantiateAllMarked();
 
         if (gameIsOver) {
             
@@ -64,6 +66,8 @@ void populateEventQueue(sf::RenderWindow& window) {
     }
 }
 
+std::deque<std::pair<sf::Transform, sf::Drawable*>> dq;
+
 int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
@@ -76,7 +80,9 @@ int main() {
     GameObjectBuilder(Transform(leftPlayerStartPos, 0))
         .withTag("Player1")
         .addComponent<Player>(&wasdController, leftCollider)
-        .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Green, PLAYER_SIZE));})
+        // .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Green, PLAYER_SIZE));})
+        // .addComponent<Renderer>(Spaceship(sf::Color::Green, PLAYER_SIZE))
+        .addComponentUnique<Renderer>(std::make_unique<Spaceship>(sf::Color::Green, PLAYER_SIZE))
         .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
         .addComponent<RigidBody>(1.0f)
         .registerGameObject();
@@ -84,12 +90,14 @@ int main() {
     GameObjectBuilder(Transform(rightPlayerStartPos, 0))
         .withTag("Player2")
         .addComponent<Player>(&arrowsController, rightCollider)
-        .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Blue, PLAYER_SIZE));})
+        // .addComponentFrom([]{return Renderer(Spaceship(sf::Color::Blue, PLAYER_SIZE));})
+        // .addComponent<Renderer>(Spaceship(sf::Color::Blue, PLAYER_SIZE))
+        .addComponentUnique<Renderer>(std::make_unique<Spaceship>(sf::Color::Blue, PLAYER_SIZE))
         .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
         .addComponent<RigidBody>(1.0f)
         .registerGameObject();
 
-    auto objs = GameObject::getGameObjects();
+    std::vector<GameObject>& objs = GameObject::getGameObjects();
     for (size_t i = 0; i < objs.size(); i++) {
         objs[i].initialize(i);
     }
@@ -103,9 +111,12 @@ int main() {
         gameLoopStart.release();
 
         window.clear();
-        while (!drawQueue.empty()) {
-            window.draw(*drawQueue.front());
-            drawQueue.pop_front();
+        while (!dq.empty()) {
+            auto& [transform, drawable] = dq.front();
+            sf::RenderStates states = sf::RenderStates::Default;
+            states.transform *= transform;
+            window.draw(*drawable, states);
+            dq.pop_front();
         }
         window.display();
 
@@ -118,8 +129,15 @@ int main() {
         }
 
         // Push stuff to the draw queue
-        setupDrawQueue();
-        drawQueue.push_back(&divisionLine);
+        for (auto& obj : GameObject::getGameObjects()) {
+            if (obj.hasComponent<Renderer>()) {
+                Renderer& renderer = obj.getComponent<Renderer>();
+                dq.push_back(std::make_pair(obj.transform.getTranformMatrix(), &renderer));
+            }
+        }
+
+        // setupDrawQueue();
+        dq.push_back(std::make_pair(sf::Transform(), &divisionLine));
 
         populateEventQueue(window);
 

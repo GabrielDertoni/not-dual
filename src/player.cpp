@@ -62,32 +62,35 @@ void Player::update(GameObject& gameObject) {
     if (inputs[Controller::Left ]) vec.x += -1;
     if (inputs[Controller::Right]) vec.x +=  1;
 
-    Timestamp now = getNow();
-    auto ellapsed = now - lastShot;
-
-    if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
-        GameObjectBuilder(gameObject.transform)
-            .withTag(std::string(gameObject.getTag()))
-            .addComponentFrom([&]{
-                RigidBody rb(1.0f);
-                rb.setVelocity(gameObject.getDir() * BULLET_SPEED);
-                return rb;
-            })
-            .registerGameObject();
-
-        lastShot = getNow();
-    }
-
     float norm = sqrt(vec.x * vec.x + vec.y * vec.y);
     if (norm > 0) vec /= norm;
 
     RigidBody& rb = gameObject.getComponent<RigidBody>();
     rb.applyForce(vec * IMPULSE);
 
+    Timestamp now = getNow();
+    auto ellapsed = now - lastShot;
+
+    if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
+        GameObjectBuilder(gameObject.transform)
+            .withTag(std::string(gameObject.getTag()))
+            .addComponent<Bullet>(worldCollider)
+            .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
+            .addComponentFrom([&] {
+                RigidBody rb(1.0f);
+                rb.setVelocity(gameObject.getDir() * BULLET_SPEED);
+                return rb;
+            })
+            .addComponentUnique<Renderer>(std::make_unique<RectangleShape>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)))
+            .registerGameObject();
+
+        lastShot = getNow();
+    }
+
     BoxCollider& collider = gameObject.getComponent<BoxCollider>();
 
     if (collider.intersects(container)) {
-        // TODO
+        // TODO: check if player is out of world bounds.
     }
 
     auto isBulletHit = [&](GameObject& obj) {
@@ -96,7 +99,7 @@ void Player::update(GameObject& gameObject) {
             && collider.intersects(obj.getComponent<BoxCollider>());
     };
 
-    for (auto bullet : GameObject::getGameObjects() | views::filter(isBulletHit)) {
+    for (auto& bullet : GameObject::getGameObjects() | views::filter(isBulletHit)) {
         life -= BULLET_DAMAGE;
         bullet.destroy();
     }

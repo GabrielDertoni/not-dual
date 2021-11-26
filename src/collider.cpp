@@ -40,3 +40,17 @@ bool BoxCollider::intersects(BoxCollider& other) {
 std::unique_ptr<Component> BoxCollider::clone() {
     return std::make_unique<BoxCollider>(*this);
 }
+
+void BoxCollider::initialize(GameObject& gameObject) {
+    sf::Transform matrix = gameObject.transform.getTranformMatrix();
+    leftTop = matrix.transformPoint(leftTop);
+    rightBottom = matrix.transformPoint(rightBottom);
+}
+
+void BoxCollider::update(GameObject& gameObject) {
+    sf::Transform matrix = gameObject.transform.getTranformMatrix();
+    leftTop = matrix.transformPoint(leftTop);
+    rightBottom = matrix.transformPoint(rightBottom);
+}
+
+

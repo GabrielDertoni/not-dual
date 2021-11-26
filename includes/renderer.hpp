@@ -3,44 +3,37 @@
 
 #include <iostream>
 #include <memory>
-#include <type_traits>
 
 #include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
 
 #include "includes/gameobj.hpp"
 #include "includes/rendering.hpp"
 
-template <typename T> requires std::is_base_of<sf::Drawable, T>::value
-                            && std::is_copy_constructible<T>::value
-                            && std::is_move_constructible<T>::value
-class Renderer: public Behaviour {
+class Renderer: public Component, public sf::Drawable { };
+
+class RectangleShape: public Renderer {
 public:
-    Renderer(T drawable) :
-        drawable(std::make_unique<T>(drawable))
+    RectangleShape(sf::Vector2f size) :
+        rect(size)
     {}
 
-    Renderer(const Renderer<T>& other) :
-        drawable(std::make_unique<T>(*other.drawable))
-    {
-        printf("Copied\n");
-    }
+    RectangleShape(const RectangleShape& other) :
+        rect(other.rect)
+    {}
 
     virtual std::unique_ptr<Component> clone() {
-        return std::make_unique<Renderer>(*this);
+        return std::make_unique<RectangleShape>(*this);
     }
 
-protected:
-    virtual void initialize(GameObject& gameObject) {
-        drawable->setTransformMatrix(gameObject.transform.getTranformMatrix());
-    }
-
-    virtual void update(GameObject& gameObject) {
-        // drawable->setTransformMatrix(gameObject.transform.getTranformMatrix());
-        pushDrawable(drawable.get());
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+        target.draw(rect, states);
     }
 
 private:
-    std::unique_ptr<T> drawable;
+    sf::RectangleShape rect;
 };
 
 #endif

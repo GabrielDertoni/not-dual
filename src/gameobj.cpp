@@ -23,16 +23,19 @@ GameObject::GameObject(Transform transform) :
     shouldBeDestroyed(false)
 {}
 
+/*
 GameObject::GameObject(const GameObject& other) :
     transform(other.transform),
     shouldBeDestroyed(other.shouldBeDestroyed)
 {
+    std::cout << "GameObject copied" << std::endl;
     setTag(other.getTag());
 
     for (auto& [key, component] : other.components) {
-        addComponentUnique(key, component->clone());
+        addComponentUniqueWithId(key, component->clone());
     }
 }
+*/
 
 GameObject::GameObject(GameObject&& other) :
     transform(other.transform),
@@ -105,7 +108,7 @@ sf::Vector2f GameObject::getDir() const {
     return sf::Vector2f(cos(ang), sin(ang));
 }
 
-void GameObject::addComponentUnique(size_t id, std::unique_ptr<Component> component) {
+void GameObject::addComponentUniqueWithId(size_t id, std::unique_ptr<Component> component) {
     components.insert(std::make_pair(id, std::move(component)));
 }
 
@@ -115,6 +118,7 @@ Component::Component() {}
 
 std::vector<GameObject> GameObject::instances;
 std::deque<size_t> GameObject::destroyQueue;
+std::deque<GameObject> GameObject::instantiateQueue;
 
 void GameObject::markForDestruction(size_t idx) {
     destroyQueue.push_back(idx);
@@ -129,9 +133,15 @@ void GameObject::destroyAllMarked() {
     }
 }
 
-size_t GameObject::addGameObject(GameObject gameObject) {
-    instances.push_back(gameObject);
-    return instances.size() - 1;
+void GameObject::instantiateAllMarked() {
+    while (!instantiateQueue.empty()) {
+        instances.push_back(std::move(instantiateQueue.front()));
+        instantiateQueue.pop_front();
+    }
+}
+
+void GameObject::addGameObject(GameObject gameObject) {
+    instantiateQueue.push_back(std::move(gameObject));
 }
 
 std::vector<GameObject>& GameObject::getGameObjects() {
@@ -145,7 +155,7 @@ GameObjectBuilder::GameObjectBuilder(Transform transform) :
 {}
 
 GameObjectBuilder& GameObjectBuilder::withTag(std::string&& tag) {
-    tag = std::move(tag);
+    this->tag = std::move(tag);
     return *this;
 }
 
@@ -156,6 +166,6 @@ GameObject GameObjectBuilder::build() {
     return obj;
 }
 
-size_t GameObjectBuilder::registerGameObject() {
-    return GameObject::addGameObject(build());
+void GameObjectBuilder::registerGameObject() {
+    GameObject::addGameObject(build());
 }

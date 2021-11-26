@@ -51,3 +51,7 @@ void Spaceship::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= matrix;
     target.draw(shape, states);
 }
+
+std::unique_ptr<Component> Spaceship::clone() {
+    return std::make_unique<Spaceship>(*this);
+}

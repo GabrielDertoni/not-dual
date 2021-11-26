@@ -11,6 +11,7 @@
 #include <string>
 
 #include <SFML/Graphics/Transform.hpp>
+#include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 
@@ -46,13 +47,16 @@ public:
     template <typename T, class... Args> 
     GameObjectBuilder& addComponent(Args&&... args);
 
+    template <typename T> 
+    GameObjectBuilder& addComponentUnique(std::unique_ptr<T> component);
+
     template <typename F> 
     GameObjectBuilder& addComponentFrom(F getComponent)
         requires std::is_invocable<F>::value
               && std::is_copy_constructible<decltype(getComponent())>::value;
 
     GameObject build();
-    size_t registerGameObject();
+    void registerGameObject();
 
 private:
     Transform transform;
@@ -66,7 +70,7 @@ public:
 
 public:
     GameObject(Transform transform);
-    GameObject(const GameObject& other);
+    // GameObject(const GameObject& other);
     GameObject(GameObject&& other);
 
     GameObject& operator=(GameObject &&other);
@@ -102,19 +106,21 @@ private:
     bool shouldBeDestroyed;
     std::unordered_map<size_t, std::unique_ptr<Component>> components;
 
-    void addComponentUnique(size_t id, std::unique_ptr<Component> component);
+    void addComponentUniqueWithId(size_t id, std::unique_ptr<Component> component);
 
     friend GameObject GameObjectBuilder::build();
 
 public:
     static std::vector<GameObject>& getGameObjects();
-    static size_t addGameObject(GameObject gameObject);
+    static void addGameObject(GameObject gameObject);
     static void markForDestruction(size_t idx);
     static void destroyAllMarked();
+    static void instantiateAllMarked();
 
 private:
     static std::vector<GameObject> instances;
     static std::deque<size_t> destroyQueue;
+    static std::deque<GameObject> instantiateQueue;
 };
 
 class Behaviour: public Component {
@@ -172,6 +178,19 @@ template <typename T, class... Args>
 GameObjectBuilder& GameObjectBuilder::addComponent(Args&&... args) {
     const std::type_info& info = typeid(T);
     auto [it, ok] = components.insert(std::make_pair(info.hash_code(), std::make_unique<T>(args...)));
+
+    if (!ok) {
+        std::stringstream s;
+        s << "Component " << info.name() << " was already present in GameObject";
+        throw std::runtime_error(std::move(s.str()));
+    }
+    return *this;
+}
+
+template <typename T> 
+GameObjectBuilder& GameObjectBuilder::addComponentUnique(std::unique_ptr<T> component) {
+    const std::type_info& info = typeid(T);
+    auto [it, ok] = components.insert(std::make_pair(info.hash_code(), std::move(component)));
 
     if (!ok) {
         std::stringstream s;

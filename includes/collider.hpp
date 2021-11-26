@@ -5,7 +5,7 @@
 
 #include "includes/gameobj.hpp"
 
-class BoxCollider: public Component {
+class BoxCollider: public Behaviour {
 public:
     sf::Vector2f leftTop;
     sf::Vector2f rightBottom;
@@ -15,11 +15,19 @@ public:
         rightBottom(rightBottom),
         inverted(inverted)
     {}
+    BoxCollider(sf::Vector2f size, bool inverted = false) :
+        leftTop(-size/2.0f),
+        rightBottom(size/2.0f),
+        inverted(inverted)
+    {}
     BoxCollider(const BoxCollider& other);
 
     bool intersects(BoxCollider& other);
 
     virtual std::unique_ptr<Component> clone();
+
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
 
 private:
     bool inverted;
