@@ -33,8 +33,13 @@ void SuperPower::initialize(GameObject& gameObject) {}
 void SuperPower::update(GameObject& gameObject) {
     Timestamp now = getNow();
 
-    if (now - lastPower <= std::chrono::milliseconds(0)) {
+    if (now - this->lastPower >= SUPER_POWER_INTERVAL_LIFE) {
+        std::cout << "AQUI" << std::endl;
         gameObject.destroy();
     }
+}
+
+Timestamp SuperPower::getLastPower() {
+    return lastPower;
 }
 

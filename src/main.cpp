@@ -16,6 +16,7 @@
 #include "includes/settings.hpp"
 #include "includes/rendering.hpp"
 #include "includes/superpower.hpp"
+#include "includes/time.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 
@@ -28,6 +29,8 @@ bool gameIsOver = false;
 
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
+
+Timestamp globalCounter;
 
 void gameLoop() {
     while (!done) {
@@ -103,6 +106,8 @@ int main() {
     std::thread gameThread(gameLoop);
 
     done = false;
+
+    globalCounter = getNow();
 
     while (window.isOpen()) {
         // Game loop starts
