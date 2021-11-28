@@ -1,2 +1,5 @@
 build/
 not_dual
+compile_flags.txt
+.clangd
+.clang-format
