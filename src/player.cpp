@@ -78,6 +78,7 @@ void Player::update(GameObject& gameObject) {
         lastShot = getNow();
     }
 
+<<<<<<< HEAD
     bool existsPower = false;
     for (auto& obj : GameObject::getGameObjects()) {
         if (obj.hasComponent<SuperPower>()) {
@@ -86,6 +87,10 @@ void Player::update(GameObject& gameObject) {
     }
 
     if (!existsPower) {
+=======
+    if (!gameObject.hasComponent<SuperPower>() /*&& ellapsed > SUPER_POWER_INTERVAL*/) {
+        std::cout << "HERE" << std::endl;
+>>>>>>> fccf449284f37257d5ccab9e5b032895a7cd98a2
         // this positions needs to be rand()
         auto superPowerPos = side == LEFT ? sf::Vector2f(250, HEIGHT / 2) :
                                             sf::Vector2f(450, HEIGHT / 2);
