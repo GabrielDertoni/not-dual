@@ -22,6 +22,7 @@
 #define BULLET_SPEED  5.0f
 #define BULLET_DAMAGE 10
 #define SHOOT_INTERVAL (std::chrono::milliseconds(100))
+#define SHOW_SUPER_POWER_INTERVAL (std::chrono::milliseconds(10000))
 
 class Controller {
 public:
