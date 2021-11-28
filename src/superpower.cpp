@@ -1,10 +1,6 @@
+#include <iostream>
 #include <chrono>
 #include <ranges>
-
-//#include "includes/superpower.hpp"
-//#include "includes/time.hpp"
-//#include "includes/collider.hpp"
-//#include "includes/rigidbody.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -30,6 +26,7 @@ void SuperPower::update(GameObject& gameObject) {
     Timestamp now = getNow();
 
     if (now - lastPower <= std::chrono::milliseconds(0)) {
+        std::cout << "AQUI" << std::endl;
         gameObject.destroy();
     }
 }
