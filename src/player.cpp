@@ -17,6 +17,7 @@ namespace views = std::views;
 #include "includes/bullet.hpp"
 #include "includes/input.hpp"
 #include "includes/settings.hpp"
+#include "includes/superpower.hpp"
 
 static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
@@ -75,6 +76,20 @@ void Player::update(GameObject& gameObject) {
             .registerGameObject();
 
         lastShot = getNow();
+    }
+
+    if (!gameObject.hasComponent<SuperPower>() /*&& ellapsed > SUPER_POWER_INTERVAL*/) {
+        std::cout << "HERE" << std::endl;
+        // this positions needs to be rand()
+        auto superPowerPos = side == LEFT ? sf::Vector2f(250, HEIGHT / 2) :
+                                            sf::Vector2f(450, HEIGHT / 2);
+        GameObjectBuilder(Transform(superPowerPos, 0))
+            .withTag(std::string(gameObject.getTag()))
+            .addComponent<SuperPower>(getNow())
+            .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
+            .addComponent<RigidBody>(1.0f)
+            .addComponent<Renderer>(Spaceship(sf::Color::Red, POWER_SIZE))
+            .registerGameObject();
     }
 
     BoxCollider& collider = gameObject.getComponent<BoxCollider>();
@@ -140,12 +155,26 @@ void Player::update(GameObject& gameObject) {
             && collider.intersects(obj.getComponent<BoxCollider>());
     };
 
+    auto playerGetsPower = [&](GameObject& obj) {
+        return obj.hasComponent<SuperPower>()
+            && obj.getTag() == gameObject.getTag()
+            && collider.intersects(obj.getComponent<BoxCollider>());
+    };
+
     for (auto& bullet : GameObject::getGameObjects()
                       | views::filter(isBulletHit))
     {
         life -= BULLET_DAMAGE;
         bullet.destroy();
     }
+
+    for (auto& superPower : GameObject::getGameObjects()
+                          | views::filter(playerGetsPower))
+    {
+       //do something with player ...
+       superPower.destroy();
+    }
+
 
     if (life <= 0) {
         gameObject.destroy();

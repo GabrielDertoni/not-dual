@@ -15,6 +15,7 @@
 #include "includes/input.hpp"
 #include "includes/settings.hpp"
 #include "includes/rendering.hpp"
+#include "includes/superpower.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 
@@ -43,7 +44,7 @@ void gameLoop() {
         GameObject::instantiateAllMarked();
 
         if (gameIsOver) {
-            
+
         }
         gameLoopDone.release();
     }
