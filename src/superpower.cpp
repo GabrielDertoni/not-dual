@@ -1,3 +1,4 @@
+#include <chrono>
 #include <ranges>
 
 //#include "includes/superpower.hpp"
@@ -13,12 +14,10 @@
 #include "includes/gameobj.hpp"
 #include "includes/settings.hpp"
 
-#define CHRONO_ZERO_INTERVAL (std::chrono::milliseconds(1))
-
 SuperPower::SuperPower(
-        Timestamp created
+        Timestamp lastPower
 ) :
-    created(created)
+    lastPower(lastPower)
 {}
 
 std::unique_ptr<Component> SuperPower::clone() {
@@ -28,10 +27,10 @@ std::unique_ptr<Component> SuperPower::clone() {
 void SuperPower::initialize(GameObject& gameObject) {}
 
 void SuperPower::update(GameObject& gameObject) {
-    //Timestamp now = getNow();
+    Timestamp now = getNow();
 
-    //if (created <= std::chrono::milliseconds(0)) {
-        //gameObject.destroy();
-    //}
+    if (now - lastPower <= std::chrono::milliseconds(0)) {
+        gameObject.destroy();
+    }
 }
 

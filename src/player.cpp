@@ -78,7 +78,7 @@ void Player::update(GameObject& gameObject) {
         lastShot = getNow();
     }
 
-    if (!gameObject.hasComponent<SuperPower>() && ellapsed > SHOW_SUPER_POWER_INTERVAL) {
+    if (!gameObject.hasComponent<SuperPower>() /*&& ellapsed > SUPER_POWER_INTERVAL*/) {
         std::cout << "HERE" << std::endl;
         // this positions needs to be rand()
         auto superPowerPos = side == LEFT ? sf::Vector2f(250, HEIGHT / 2) :

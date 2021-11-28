@@ -9,6 +9,7 @@
 #include "includes/time.hpp"
 
 #define POWER_SIZE 10
+#define SUPER_POWER_INTERVAL (std::chrono::milliseconds(500))
 
 class SuperPower: public Behaviour {
 public:
@@ -19,7 +20,7 @@ public:
     SuperPower(Timestamp created);
 
 private:
-    Timestamp created;
+    Timestamp lastPower;
 };
 
 #endif
