@@ -14,6 +14,7 @@
 #include "includes/spaceship.hpp"
 #include "includes/gameobj.hpp"
 #include "includes/time.hpp"
+#include "includes/utils.hpp"
 
 #define PLAYER_SIZE   20
 // How much force is applied when the player presses a button.

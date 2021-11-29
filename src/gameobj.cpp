@@ -23,19 +23,17 @@ GameObject::GameObject(Transform transform) :
     shouldBeDestroyed(false)
 {}
 
-/*
+// Copy constructor.
 GameObject::GameObject(const GameObject& other) :
     transform(other.transform),
     shouldBeDestroyed(other.shouldBeDestroyed)
 {
-    std::cout << "GameObject copied" << std::endl;
     setTag(other.getTag());
 
     for (auto& [key, component] : other.components) {
         addComponentUniqueWithId(key, component->clone());
     }
 }
-*/
 
 GameObject::GameObject(GameObject&& other) :
     transform(other.transform),
@@ -127,7 +125,7 @@ void GameObject::markForDestruction(size_t idx) {
 void GameObject::destroyAllMarked() {
     sort(destroyQueue.begin(), destroyQueue.end());
     while (!destroyQueue.empty()) {
-        // Swap with last element end remove. O(1)
+        // Swap with last element and remove. O(1)
         std::swap(instances[destroyQueue.back()], *--instances.end());
         instances.pop_back();
         destroyQueue.pop_back();
@@ -165,8 +163,11 @@ GameObjectBuilder& GameObjectBuilder::withTag(std::string&& tag) {
 
 GameObject GameObjectBuilder::build() {
     GameObject obj = GameObject(transform);
-    obj.tag = std::move(tag);
-    std::swap(obj.components, components);
+    obj.tag = tag;
+
+    for (auto& [key, component] : components) {
+        obj.addComponentUniqueWithId(key, component->clone());
+    }
     return obj;
 }
 

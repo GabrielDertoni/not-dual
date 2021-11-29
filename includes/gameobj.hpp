@@ -72,7 +72,7 @@ public:
 
 public:
     GameObject(Transform transform);
-    // GameObject(const GameObject& other);
+    GameObject(const GameObject& other);
     GameObject(GameObject&& other);
 
     GameObject& operator=(GameObject &&other);
