@@ -2,6 +2,9 @@
 #include "includes/bullet.hpp"
 #include "includes/settings.hpp"
 
+Bullet::Bullet(bool isSuper) : isSuper(isSuper) { }
+Bullet::Bullet(const Bullet& other) : isSuper(other.isSuper) { }
+
 std::unique_ptr<Component> Bullet::clone() {
     return std::make_unique<Bullet>(*this);
 }

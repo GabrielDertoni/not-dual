@@ -105,10 +105,12 @@ int main() {
         .addComponent<Spawner>(getNow())
         .registerGameObject();
 
+    /*
     std::vector<GameObject>& objs = GameObject::getGameObjects();
     for (size_t i = 0; i < objs.size(); i++) {
         objs[i].initialize(i);
     }
+    */
 
     std::thread gameThread(gameLoop);
 

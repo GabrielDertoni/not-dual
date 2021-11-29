@@ -10,7 +10,8 @@ RigidBody::RigidBody(float mass) :
 RigidBody::RigidBody(const RigidBody& other) :
     mass(other.mass),
     velocity(other.velocity),
-    acceleration(other.acceleration)
+    acceleration(other.acceleration),
+    gravity(other.gravity)
 {}
 
 std::unique_ptr<Component> RigidBody::clone() {
@@ -25,6 +26,8 @@ void RigidBody::update(GameObject& gameObject) {
     // velocity *= DAMPENING;
     // acceleration = sf::Vector2f(0, 0);
     acceleration *= DAMPENING_ACC;
+
+    applyForce(gravity);
 }
 
 void RigidBody::applyForce(sf::Vector2f vec) {
@@ -38,3 +41,8 @@ void RigidBody::setVelocity(sf::Vector2f vec) {
 void RigidBody::setAcceleration(sf::Vector2f vec) {
     acceleration = vec;
 }
+
+void RigidBody::setGravity(sf::Vector2f vec) {
+    gravity = vec;
+}
+

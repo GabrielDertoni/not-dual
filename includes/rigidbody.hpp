@@ -16,12 +16,14 @@ public:
     void applyForce(sf::Vector2f vec);
     void setVelocity(sf::Vector2f vec);
     void setAcceleration(sf::Vector2f vec);
+    void setGravity(sf::Vector2f vec);
 
     virtual std::unique_ptr<Component> clone();
 
     float mass;
     sf::Vector2f velocity;
     sf::Vector2f acceleration;
+    sf::Vector2f gravity;
 
 private:
     virtual void initialize(GameObject& gameObject);

@@ -39,14 +39,24 @@ public:
         target.draw(*drawable, states);
     }
 
+    DrawableClonable* unsafeDrawablePtr() {
+        return drawable.get();
+    }
+
 private:
     std::unique_ptr<DrawableClonable> drawable;
 };
 
 class RectangleShape: public DrawableClonable {
 public:
-    RectangleShape(sf::Vector2f size) :
+    RectangleShape(sf::Color color, sf::Vector2f size) :
         rect(size)
+    {
+        rect.setFillColor(color);
+    }
+
+    RectangleShape(sf::Vector2f size) :
+        RectangleShape(sf::Color::White, size)
     {}
 
     RectangleShape(const RectangleShape& other) :
@@ -59,6 +69,10 @@ public:
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
         target.draw(rect, states);
+    }
+
+    void setColor(sf::Color color) {
+        rect.setFillColor(color);
     }
 
 private:

@@ -18,6 +18,14 @@ namespace views = std::views;
 #include "includes/input.hpp"
 #include "includes/settings.hpp"
 #include "includes/superpower.hpp"
+#include "includes/particles.hpp"
+
+#define N_PARTICLES 50
+#define PARTICLE_SIZE 5
+#define PARTICLE_IMPULSE 2.0f
+#define PARTICLE_TTL (std::chrono::milliseconds(1000))
+#define PARTICLE_VANISH_RATE 0.05f
+
 
 static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
@@ -28,7 +36,8 @@ Player::Player(
 ) :
     life(life),
     side(side),
-    controller(controller)
+    controller(controller),
+    hasPower(false)
 {
     lastShot = getNow();
 }
@@ -46,7 +55,9 @@ Player::Player(
 
 Player::Player(const Player& other) :
     Player(other.controller, other.side, other.life)
-{}
+{
+    hasPower = other.hasPower;
+}
 
 std::unique_ptr<Component> Player::clone() {
     return std::make_unique<Player>(*this);
@@ -61,21 +72,33 @@ void Player::update(GameObject& gameObject) {
     auto ellapsed = now - lastShot;
 
     if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
-        GameObjectBuilder(gameObject.transform)
+        auto builder = GameObjectBuilder(gameObject.transform);
+        builder
             .withTag(std::string(gameObject.getTag()))
-            .addComponent<Bullet>()
-            .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
+            .addComponent<Bullet>(hasPower)
             .addComponentFrom([&] {
                 RigidBody rb(1.0f);
                 sf::Vector2f dir;
                 dir.x = side == LEFT ? 1 : -1;
                 rb.setVelocity(dir * BULLET_SPEED);
                 return rb;
-            })
-            .addComponent<Renderer>(RectangleShape(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)))
-            .registerGameObject();
+            });
+
+
+        if (hasPower) {
+            builder
+                .addComponent<BoxCollider>(sf::Vector2f(SUPER_BULLET_SIZE, SUPER_BULLET_SIZE))
+                .addComponent<Renderer>(RectangleShape(sf::Vector2f(SUPER_BULLET_SIZE, SUPER_BULLET_SIZE)));
+        } else {
+            builder
+                .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
+                .addComponent<Renderer>(RectangleShape(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)));
+        }
+
+        builder.registerGameObject();
 
         lastShot = getNow();
+        if (hasPower) hasPower = false;
     }
 
     BoxCollider& collider = gameObject.getComponent<BoxCollider>();
@@ -149,15 +172,32 @@ void Player::update(GameObject& gameObject) {
     for (auto& bullet : GameObject::getGameObjects()
                       | views::filter(isBulletHit))
     {
-        life -= BULLET_DAMAGE;
+        Bullet& behaviour = bullet.getComponent<Bullet>();
+        life -= behaviour.isSuper ? SUPER_BULLET_DAMAGE : BULLET_DAMAGE;
         bullet.destroy();
+
+        for (int i = 0; i < N_PARTICLES; i++) {
+            float ang = 2 * M_PI * (float)(rand() % 100) / 100;
+            sf::Vector2f dir(cos(ang), sin(ang));
+            GameObjectBuilder(gameObject.transform)
+                .addComponent<Particle>(sf::Color::Red)
+                .addComponentFrom([&] {
+                    RigidBody rb(1.0f);
+                    float impulse = PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
+                    rb.applyForce(dir * impulse);
+                    rb.setGravity(sf::Vector2f(0, 0.5f));
+                    return rb;
+                })
+                .addComponent<Renderer>(RectangleShape(sf::Vector2f(PARTICLE_SIZE, PARTICLE_SIZE)))
+                .registerGameObject();
+        }
     }
 
     for (auto& superPower : GameObject::getGameObjects()
                           | views::filter(playerGetsPower))
     {
-       //do something with player ...
-       superPower.destroy();
+        hasPower = true;
+        superPower.destroy();
     }
 
 

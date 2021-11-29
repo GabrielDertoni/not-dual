@@ -12,6 +12,7 @@
 #include "includes/superpower.hpp"
 #include "includes/gameobj.hpp"
 #include "includes/settings.hpp"
+#include "includes/particles.hpp"
 
 SuperPower::SuperPower(
     Timestamp lastPower
@@ -55,11 +56,13 @@ void Spawner::update(GameObject& gameObject) {
     if (now - lastPower >= SUPER_POWER_INTERVAL) {
         GameObjectBuilder(gameObject.transform)
             .addComponent<SuperPower>(getNow())
+            .addComponent<ParticleEmitter>()
             .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
-            .addComponent<Renderer>(Spaceship(sf::Color::Red, POWER_SIZE))
+            .addComponent<Renderer>(RectangleShape(sf::Color::Red, sf::Vector2f(POWER_SIZE, POWER_SIZE)))
             .registerGameObject();
 
         lastPower = getNow();
+        gameObject.destroy();
     }
 }
 

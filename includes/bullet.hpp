@@ -10,7 +10,8 @@
 #include "includes/gameobj.hpp"
 #include "includes/collider.hpp"
 
-#define BULLET_SIZE 5
+#define BULLET_SIZE       5
+#define SUPER_BULLET_SIZE 10
 
 class Bullet: public Behaviour {
 public:
@@ -18,8 +19,10 @@ public:
     virtual void update(GameObject& gameObject);
     virtual std::unique_ptr<Component> clone();
 
-    Bullet() = default;
-    Bullet(const Bullet& other) = default;
+    Bullet(bool isSuper);
+    Bullet(const Bullet& other);
+
+    bool isSuper;
 };
 
 #endif

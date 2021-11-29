@@ -138,6 +138,9 @@ void GameObject::instantiateAllMarked() {
     while (!instantiateQueue.empty()) {
         instances.push_back(std::move(instantiateQueue.front()));
         instantiateQueue.pop_front();
+
+        size_t i = instances.size() - 1;
+        instances[i].initialize(i);
     }
 }
 

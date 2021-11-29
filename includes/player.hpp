@@ -21,6 +21,7 @@
 
 #define BULLET_SPEED  5.0f
 #define BULLET_DAMAGE 10
+#define SUPER_BULLET_DAMAGE 30
 #define SHOOT_INTERVAL (std::chrono::milliseconds(100))
 
 class Controller {
@@ -55,6 +56,7 @@ private:
     Controller* controller;
 
     Timestamp lastShot;
+    bool hasPower;
 };
 
 class WASDController: public Controller {
