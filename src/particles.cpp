@@ -73,7 +73,7 @@ void Particle::update(GameObject& gameObject) {
     lerp = lerp + PARTICLE_VANISH_RATE > 1 ? 1 : lerp + PARTICLE_VANISH_RATE;
     sf::Color curr = colorLerp(color, sf::Color(255, 255, 255, 0), lerp);
 
-    // TODO: Make this more ergonomic.
+    // TODO(#5): Make this more ergonomic.
     Renderer& renderer = gameObject.getComponent<Renderer>();
     RectangleShape* shape = dynamic_cast<RectangleShape*>(renderer.unsafeDrawablePtr());
     shape->setColor(curr);
