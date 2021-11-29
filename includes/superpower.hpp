@@ -9,8 +9,8 @@
 #include "includes/time.hpp"
 
 #define POWER_SIZE 10
-#define SUPER_POWER_INTERVAL      (std::chrono::milliseconds(20000))
-#define SUPER_POWER_INTERVAL_LIFE (std::chrono::milliseconds(10000))
+#define SUPER_POWER_INTERVAL      (std::chrono::seconds(10))
+#define SUPER_POWER_INTERVAL_LIFE (std::chrono::seconds(5))
 
 extern Timestamp globalCounter;
 
@@ -22,6 +22,18 @@ public:
 
     SuperPower(Timestamp created);
     Timestamp getLastPower();
+
+private:
+    Timestamp lastPower;
+};
+
+class Spawner: public Behaviour {
+public:
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
+    virtual std::unique_ptr<Component> clone();
+
+    Spawner(Timestamp created);
 
 private:
     Timestamp lastPower;

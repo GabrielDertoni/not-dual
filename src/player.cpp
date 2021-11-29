@@ -78,35 +78,6 @@ void Player::update(GameObject& gameObject) {
         lastShot = getNow();
     }
 
-    now = getNow();
-    auto ellapsed_power = now - globalCounter;
-
-    if (ellapsed_power > SUPER_POWER_INTERVAL) {
-        std::cout << "HERE" << std::endl;
-        // this positions needs to be rand()
-        auto superPowerPos1 = sf::Vector2f(250, HEIGHT / 2);
-        auto superPowerPos2 = sf::Vector2f(450, HEIGHT / 2);
-        const std::string& tag1 = "Player1";
-        const std::string& tag2 = "Player2";
-
-        GameObjectBuilder(Transform(superPowerPos1, 0))
-            .withTag(std::string(tag1))
-            .addComponent<SuperPower>(getNow())
-            .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
-            .addComponent<RigidBody>(1.0f)
-            .addComponent<Renderer>(Spaceship(sf::Color::Red, POWER_SIZE))
-            .registerGameObject();
-        GameObjectBuilder(Transform(superPowerPos2, 0))
-            .withTag(std::string(tag2))
-            .addComponent<SuperPower>(getNow())
-            .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
-            .addComponent<RigidBody>(1.0f)
-            .addComponent<Renderer>(Spaceship(sf::Color::Red, POWER_SIZE))
-            .registerGameObject();
-
-        globalCounter = getNow();
-    }
-
     BoxCollider& collider = gameObject.getComponent<BoxCollider>();
 
     sf::Vector2f vec(0, 0);
@@ -172,7 +143,6 @@ void Player::update(GameObject& gameObject) {
 
     auto playerGetsPower = [&](GameObject& obj) {
         return obj.hasComponent<SuperPower>()
-            && obj.getTag() == gameObject.getTag()
             && collider.intersects(obj.getComponent<BoxCollider>());
     };
 

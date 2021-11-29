@@ -30,8 +30,6 @@ bool gameIsOver = false;
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
 
-Timestamp globalCounter;
-
 void gameLoop() {
     while (!done) {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
@@ -98,6 +96,15 @@ int main() {
         .addComponent<Renderer>(RectangleShape(sf::Vector2f(2, HEIGHT)))
         .registerGameObject();
 
+    auto superPowerPos1 = sf::Vector2f(250, HEIGHT / 2);
+    auto superPowerPos2 = sf::Vector2f(450, HEIGHT / 2);
+    GameObjectBuilder(Transform(superPowerPos1, 0))
+        .addComponent<Spawner>(getNow())
+        .registerGameObject();
+    GameObjectBuilder(Transform(superPowerPos2, 0))
+        .addComponent<Spawner>(getNow())
+        .registerGameObject();
+
     std::vector<GameObject>& objs = GameObject::getGameObjects();
     for (size_t i = 0; i < objs.size(); i++) {
         objs[i].initialize(i);
@@ -106,8 +113,6 @@ int main() {
     std::thread gameThread(gameLoop);
 
     done = false;
-
-    globalCounter = getNow();
 
     while (window.isOpen()) {
         // Game loop starts
