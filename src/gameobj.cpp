@@ -125,11 +125,12 @@ void GameObject::markForDestruction(size_t idx) {
 }
 
 void GameObject::destroyAllMarked() {
+    sort(destroyQueue.begin(), destroyQueue.end());
     while (!destroyQueue.empty()) {
         // Swap with last element end remove. O(1)
-        std::swap(instances[destroyQueue.front()], *--instances.end());
+        std::swap(instances[destroyQueue.back()], *--instances.end());
         instances.pop_back();
-        destroyQueue.pop_front();
+        destroyQueue.pop_back();
     }
 }
 
