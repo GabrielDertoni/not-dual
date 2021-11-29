@@ -24,8 +24,7 @@ void RigidBody::update(GameObject& gameObject) {
     gameObject.transform.position += velocity;
     velocity += acceleration;
 
-    // TODO: Reintroduce dampening but parameterized in the constructor. Default
-    // could be 1.
+    // TODO(#7): Reintroduce dampening but parameterized in the constructor. Default could be 1.
 
     // velocity *= DAMPENING;
     // acceleration = sf::Vector2f(0, 0);
