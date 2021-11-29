@@ -15,8 +15,6 @@ public:
     Spaceship(sf::Color color, float size);
     Spaceship(const Spaceship& other);
 
-    void setTransformMatrix(sf::Transform matrix);
-
     virtual std::unique_ptr<DrawableClonable> clone() const;
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
@@ -25,7 +23,6 @@ public:
 private:
     float size;
     sf::RectangleShape shape;
-    sf::Transform matrix;
 };
 
 #endif

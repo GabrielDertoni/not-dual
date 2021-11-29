@@ -4,6 +4,7 @@
 #include <SFML/System/Vector2.hpp>
 
 #include "includes/gameobj.hpp"
+#include "includes/utils.hpp"
 
 class BoxCollider: public Behaviour {
 public:
@@ -25,7 +26,7 @@ public:
 
     bool intersects(BoxCollider& other);
 
-    virtual std::unique_ptr<Component> clone();
+    DERIVE_CLONE_COMPONENT
 
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);

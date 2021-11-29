@@ -9,6 +9,7 @@
 
 #include "includes/gameobj.hpp"
 #include "includes/collider.hpp"
+#include "includes/utils.hpp"
 
 #define BULLET_SIZE       5
 #define SUPER_BULLET_SIZE 10
@@ -17,7 +18,8 @@ class Bullet: public Behaviour {
 public:
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
-    virtual std::unique_ptr<Component> clone();
+
+    DERIVE_CLONE_COMPONENT
 
     Bullet(bool isSuper);
     Bullet(const Bullet& other);

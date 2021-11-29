@@ -14,10 +14,6 @@ RigidBody::RigidBody(const RigidBody& other) :
     gravity(other.gravity)
 {}
 
-std::unique_ptr<Component> RigidBody::clone() {
-    return std::make_unique<RigidBody>(*this);
-}
-
 void RigidBody::initialize(GameObject& gameObject) {}
 
 void RigidBody::update(GameObject& gameObject) {

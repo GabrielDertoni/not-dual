@@ -11,6 +11,7 @@
 
 #include "includes/gameobj.hpp"
 #include "includes/rendering.hpp"
+#include "includes/utils.hpp"
 
 class DrawableClonable: public sf::Drawable {
 public:
@@ -31,9 +32,7 @@ public:
         drawable.reset(other.drawable->clone().release());
     }
 
-    virtual std::unique_ptr<Component> clone() {
-        return std::make_unique<Renderer>(*this);
-    }
+    DERIVE_CLONE_COMPONENT
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
         target.draw(*drawable, states);

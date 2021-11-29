@@ -59,10 +59,6 @@ Player::Player(const Player& other) :
     hasPower = other.hasPower;
 }
 
-std::unique_ptr<Component> Player::clone() {
-    return std::make_unique<Player>(*this);
-}
-
 void Player::initialize(GameObject& gameObject) {}
 
 void Player::update(GameObject& gameObject) {

@@ -17,10 +17,6 @@ bool BoxCollider::intersects(BoxCollider& other) {
     return minX <= maxX && minY <= maxY;
 }
 
-std::unique_ptr<Component> BoxCollider::clone() {
-    return std::make_unique<BoxCollider>(*this);
-}
-
 void BoxCollider::initialize(GameObject& gameObject) {
     sf::Transform matrix = gameObject.transform.getTranformMatrix();
     gLeftTop = matrix.transformPoint(leftTop);

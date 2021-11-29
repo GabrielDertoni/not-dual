@@ -44,7 +44,8 @@ public:
 
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
-    virtual std::unique_ptr<Component> clone();
+
+    DERIVE_CLONE_COMPONENT
 
     Player(Controller* controller, Side side);
     Player(Controller* controller, Side side, float life);

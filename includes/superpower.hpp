@@ -19,7 +19,7 @@ class SuperPower: public Behaviour {
 public:
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
-    virtual std::unique_ptr<Component> clone();
+    DERIVE_CLONE_COMPONENT
 
     SuperPower(Timestamp created);
     Timestamp getLastPower();
@@ -32,7 +32,8 @@ class Spawner: public Behaviour {
 public:
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
-    virtual std::unique_ptr<Component> clone();
+
+    DERIVE_CLONE_COMPONENT
 
     Spawner(Timestamp created);
 

@@ -5,13 +5,14 @@
 
 #include "includes/gameobj.hpp"
 #include "includes/time.hpp"
+#include "includes/utils.hpp"
 
 class Particle: public Behaviour {
 public:
     Particle(sf::Color color);
     Particle(const Particle& other);
 
-    virtual std::unique_ptr<Component> clone();
+    DERIVE_CLONE_COMPONENT
 
 private:
     virtual void initialize(GameObject& gameObject);
@@ -27,7 +28,7 @@ public:
     ParticleEmitter() = default;
     ParticleEmitter(const ParticleEmitter& other) = default;
 
-    virtual std::unique_ptr<Component> clone();
+    DERIVE_CLONE_COMPONENT
 
 private:
     virtual void initialize(GameObject& gameObject);

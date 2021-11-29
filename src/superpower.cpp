@@ -26,10 +26,6 @@ Spawner::Spawner(
     lastPower(created)
 {}
 
-std::unique_ptr<Component> SuperPower::clone() {
-    return std::make_unique<SuperPower>(*this);
-}
-
 void SuperPower::initialize(GameObject& gameObject) {}
 
 void SuperPower::update(GameObject& gameObject) {
@@ -42,10 +38,6 @@ void SuperPower::update(GameObject& gameObject) {
 
 Timestamp SuperPower::getLastPower() {
     return lastPower;
-}
-
-std::unique_ptr<Component> Spawner::clone() {
-    return std::make_unique<Spawner>(*this);
 }
 
 void Spawner::initialize(GameObject& gameObject) {}

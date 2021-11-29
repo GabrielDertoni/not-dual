@@ -4,6 +4,7 @@
 #include <SFML/System/Vector2.hpp>
 
 #include "includes/gameobj.hpp"
+#include "includes/utils.hpp"
 
 #define DAMPENING     0.97f
 #define DAMPENING_ACC 0.5f
@@ -18,7 +19,7 @@ public:
     void setAcceleration(sf::Vector2f vec);
     void setGravity(sf::Vector2f vec);
 
-    virtual std::unique_ptr<Component> clone();
+    DERIVE_CLONE_COMPONENT
 
     float mass;
     sf::Vector2f velocity;

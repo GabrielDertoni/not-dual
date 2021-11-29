@@ -15,10 +15,6 @@
 #define PARTICLE_TTL (std::chrono::milliseconds(500))
 #define PARTICLE_VANISH_RATE 0.01f
 
-std::unique_ptr<Component> ParticleEmitter::clone() {
-    return std::make_unique<ParticleEmitter>(*this);
-}
-
 void ParticleEmitter::initialize(GameObject& gameObject) {
     lastEmitted = getNow();
 }
@@ -44,10 +40,6 @@ void ParticleEmitter::update(GameObject& gameObject) {
 
         lastEmitted = getNow();
     }
-}
-
-std::unique_ptr<Component> Particle::clone() {
-    return std::make_unique<Particle>(*this);
 }
 
 Particle::Particle(sf::Color color) :

@@ -20,41 +20,19 @@ Spaceship::Spaceship(sf::Color color, float size) :
 
 Spaceship::Spaceship(const Spaceship& other) :
     size(other.size),
-    shape(other.shape),
-    matrix(other.matrix)
+    shape(other.shape)
 {
     shape.setFillColor(other.shape.getFillColor());
 }
 
-void Spaceship::setTransformMatrix(sf::Transform matrix) {
-    this->matrix = matrix;
-    auto p = this->matrix.getMatrix();
-    printf("[[%f %f %f %f]\n\
- [%f %f %f %f]\n\
- [%f %f %f %f]\n\
- [%f %f %f %f]]\n",
-         p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10],
-         p[11], p[12], p[13], p[14], p[15]);
+std::unique_ptr<DrawableClonable> Spaceship::clone() const {
+    return std::make_unique<Spaceship>(*this);
 }
 
 void Spaceship::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    /*
-        auto p = matrix.getMatrix();
-        printf("[[%f %f %f %f]\n\
- [%f %f %f %f]\n\
- [%f %f %f %f]\n\
- [%f %f %f %f]]\n",
-                 p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10],
-                 p[11], p[12], p[13], p[14], p[15]);
-                 */
-    states.transform *= matrix;
     target.draw(shape, states);
 }
 
 sf::Color Spaceship::getColor() const {
     return shape.getFillColor();
-}
-
-std::unique_ptr<DrawableClonable> Spaceship::clone() const {
-    return std::make_unique<Spaceship>(*this);
 }
