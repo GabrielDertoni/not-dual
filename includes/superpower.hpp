@@ -9,7 +9,10 @@
 #include "includes/time.hpp"
 
 #define POWER_SIZE 10
-#define SUPER_POWER_INTERVAL (std::chrono::milliseconds(500))
+#define SUPER_POWER_INTERVAL      (std::chrono::milliseconds(20000))
+#define SUPER_POWER_INTERVAL_LIFE (std::chrono::milliseconds(10000))
+
+extern Timestamp globalCounter;
 
 class SuperPower: public Behaviour {
 public:
@@ -18,6 +21,7 @@ public:
     virtual std::unique_ptr<Component> clone();
 
     SuperPower(Timestamp created);
+    Timestamp getLastPower();
 
 private:
     Timestamp lastPower;
