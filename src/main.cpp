@@ -15,6 +15,8 @@
 #include "includes/input.hpp"
 #include "includes/settings.hpp"
 #include "includes/rendering.hpp"
+#include "includes/superpower.hpp"
+#include "includes/time.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 
@@ -43,7 +45,7 @@ void gameLoop() {
         GameObject::instantiateAllMarked();
 
         if (gameIsOver) {
-            
+
         }
         gameLoopDone.release();
     }
@@ -92,6 +94,15 @@ int main() {
 
     GameObjectBuilder(Transform(sf::Vector2f(WIDTH/2 - 1, 0), 0))
         .addComponent<Renderer>(RectangleShape(sf::Vector2f(2, HEIGHT)))
+        .registerGameObject();
+
+    auto superPowerPos1 = sf::Vector2f(250, HEIGHT / 2);
+    auto superPowerPos2 = sf::Vector2f(450, HEIGHT / 2);
+    GameObjectBuilder(Transform(superPowerPos1, 0))
+        .addComponent<Spawner>(getNow())
+        .registerGameObject();
+    GameObjectBuilder(Transform(superPowerPos2, 0))
+        .addComponent<Spawner>(getNow())
         .registerGameObject();
 
     std::vector<GameObject>& objs = GameObject::getGameObjects();

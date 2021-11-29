@@ -17,6 +17,7 @@ namespace views = std::views;
 #include "includes/bullet.hpp"
 #include "includes/input.hpp"
 #include "includes/settings.hpp"
+#include "includes/superpower.hpp"
 
 static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
@@ -140,12 +141,25 @@ void Player::update(GameObject& gameObject) {
             && collider.intersects(obj.getComponent<BoxCollider>());
     };
 
+    auto playerGetsPower = [&](GameObject& obj) {
+        return obj.hasComponent<SuperPower>()
+            && collider.intersects(obj.getComponent<BoxCollider>());
+    };
+
     for (auto& bullet : GameObject::getGameObjects()
                       | views::filter(isBulletHit))
     {
         life -= BULLET_DAMAGE;
         bullet.destroy();
     }
+
+    for (auto& superPower : GameObject::getGameObjects()
+                          | views::filter(playerGetsPower))
+    {
+       //do something with player ...
+       superPower.destroy();
+    }
+
 
     if (life <= 0) {
         gameObject.destroy();

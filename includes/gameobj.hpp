@@ -46,13 +46,13 @@ public:
 
     GameObjectBuilder& withTag(std::string&& tag);
 
-    template <typename T, class... Args> 
+    template <typename T, class... Args>
     GameObjectBuilder& addComponent(Args&&... args);
 
-    template <typename T> 
+    template <typename T>
     GameObjectBuilder& addComponentUnique(std::unique_ptr<T> component);
 
-    template <typename F> 
+    template <typename F>
     GameObjectBuilder& addComponentFrom(F getComponent)
         requires std::is_invocable<F>::value
               && std::is_copy_constructible<decltype(getComponent())>::value;
@@ -158,7 +158,7 @@ bool GameObject::hasComponent()
 }
 
 template <class T, class... Args>
-T& GameObject::addComponent(Args&&... args) 
+T& GameObject::addComponent(Args&&... args)
     requires std::is_base_of<Component, T>::value
 {
     const std::type_info& info = typeid(T);
@@ -176,7 +176,7 @@ T& GameObject::addComponent(Args&&... args)
 /* GameObjectBuilder */
 
 
-template <typename T, class... Args> 
+template <typename T, class... Args>
 GameObjectBuilder& GameObjectBuilder::addComponent(Args&&... args) {
     const std::type_info& info = typeid(T);
     auto [it, ok] = components.insert(std::make_pair(info.hash_code(), std::make_unique<T>(args...)));
@@ -189,7 +189,7 @@ GameObjectBuilder& GameObjectBuilder::addComponent(Args&&... args) {
     return *this;
 }
 
-template <typename T> 
+template <typename T>
 GameObjectBuilder& GameObjectBuilder::addComponentUnique(std::unique_ptr<T> component) {
     const std::type_info& info = typeid(T);
     auto [it, ok] = components.insert(std::make_pair(info.hash_code(), std::move(component)));
