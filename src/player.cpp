@@ -169,6 +169,9 @@ void Player::update(GameObject& gameObject) {
             && collider.intersects(obj.getComponent<BoxCollider>());
     };
 
+    Renderer& renderer = gameObject.getComponent<Renderer>();
+    Spaceship* mesh = dynamic_cast<Spaceship*>(renderer.unsafeDrawablePtr());
+
     for (auto& bullet : GameObject::getGameObjects()
                       | views::filter(isBulletHit))
     {
@@ -180,7 +183,7 @@ void Player::update(GameObject& gameObject) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
             sf::Vector2f dir(cos(ang), sin(ang));
             GameObjectBuilder(gameObject.transform)
-                .addComponent<Particle>(sf::Color::Red)
+                .addComponent<Particle>(mesh->getColor())
                 .addComponentFrom([&] {
                     RigidBody rb(1.0f);
                     float impulse = PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);

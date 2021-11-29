@@ -51,6 +51,10 @@ void Spaceship::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(shape, states);
 }
 
+sf::Color Spaceship::getColor() const {
+    return shape.getFillColor();
+}
+
 std::unique_ptr<DrawableClonable> Spaceship::clone() const {
     return std::make_unique<Spaceship>(*this);
 }

@@ -20,6 +20,8 @@ public:
     virtual std::unique_ptr<DrawableClonable> clone() const;
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
+    sf::Color getColor() const;
+
 private:
     float size;
     sf::RectangleShape shape;

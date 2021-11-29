@@ -10,10 +10,10 @@
 // TODO: Parameterize those macros in the constructors.
 #define N 10
 #define PARTICLE_EMIT_INTERVAL (std::chrono::milliseconds(100))
-#define PARTICLE_SIZE 2
+#define PARTICLE_SIZE 5
 #define PARTICLE_IMPULSE 2.0f
 #define PARTICLE_TTL (std::chrono::milliseconds(500))
-#define PARTICLE_VANISH_RATE 0.05f
+#define PARTICLE_VANISH_RATE 0.01f
 
 std::unique_ptr<Component> ParticleEmitter::clone() {
     return std::make_unique<ParticleEmitter>(*this);
@@ -73,6 +73,7 @@ void Particle::update(GameObject& gameObject) {
     lerp = lerp + PARTICLE_VANISH_RATE > 1 ? 1 : lerp + PARTICLE_VANISH_RATE;
     sf::Color curr = colorLerp(color, sf::Color(255, 255, 255, 0), lerp);
 
+    // TODO: Make this more ergonomic.
     Renderer& renderer = gameObject.getComponent<Renderer>();
     RectangleShape* shape = dynamic_cast<RectangleShape*>(renderer.unsafeDrawablePtr());
     shape->setColor(curr);
