@@ -62,7 +62,6 @@ void Spawner::update(GameObject& gameObject) {
             .registerGameObject();
 
         lastPower = getNow();
-        gameObject.destroy();
     }
 }
 
