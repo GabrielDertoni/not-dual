@@ -30,7 +30,7 @@ void RigidBody::update(GameObject& gameObject) {
     // velocity *= DAMPENING;
     // acceleration = sf::Vector2f(0, 0);
 
-    // TODO: Parameterize in constructor.
+    // TODO(#6): Parameterize in constructor.
     acceleration *= DAMPENING_ACC;
 
     applyForce(gravity);
