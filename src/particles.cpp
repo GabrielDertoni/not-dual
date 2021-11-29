@@ -7,7 +7,7 @@
 #include "includes/renderer.hpp"
 #include "includes/utils.hpp"
 
-// TODO: Parameterize those macros in the constructors.
+// TODO(#4): Parameterize those macros in the constructors.
 #define N 10
 #define PARTICLE_EMIT_INTERVAL (std::chrono::milliseconds(100))
 #define PARTICLE_SIZE 5
