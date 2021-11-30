@@ -80,7 +80,7 @@ int main() {
         .withTag("Player1")
         .addComponent<Player>(&wasdController, Player::LEFT)
         .addComponent<Renderer>(Spaceship(sf::Color::Green, PLAYER_SIZE))
-        .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
+        .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f)
         .registerGameObject();
 
@@ -88,7 +88,7 @@ int main() {
         .withTag("Player2")
         .addComponent<Player>(&arrowsController, Player::RIGHT)
         .addComponent<Renderer>(Spaceship(sf::Color::Blue, PLAYER_SIZE))
-        .addComponent<BoxCollider>(BoxCollider(-playerSize, playerSize))
+        .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f)
         .registerGameObject();
 
@@ -104,13 +104,6 @@ int main() {
     GameObjectBuilder(Transform(superPowerPos2, 0))
         .addComponent<Spawner>(getNow())
         .registerGameObject();
-
-    /*
-    std::vector<GameObject>& objs = GameObject::getGameObjects();
-    for (size_t i = 0; i < objs.size(); i++) {
-        objs[i].initialize(i);
-    }
-    */
 
     std::thread gameThread(gameLoop);
 
@@ -146,9 +139,6 @@ int main() {
                 dq.push_back(std::make_pair(obj.transform.getTranformMatrix(), std::move(renderer)));
             }
         }
-
-        // setupDrawQueue();
-        // dq.push_back(std::make_pair(sf::Transform(), &divisionLine));
 
         populateEventQueue(window);
 
