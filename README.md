@@ -66,8 +66,8 @@ UmaClasseAi fazAlgo() {
 
 ## TODOs
 
-[ ] Finalizar o `README.md`.
-[ ] Tela de início/fim/jogar novamente.
-[ ] Desenho das naves/tiros/poderes.
-[ ] Soundtrack.
-[ ] Background.
+- [ ] Finalizar o `README.md`.
+- [ ] Tela de início/fim/jogar novamente.
+- [ ] Desenho das naves/tiros/poderes.
+- [ ] Soundtrack.
+- [ ] Background.
