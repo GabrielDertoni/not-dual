@@ -1,3 +1,35 @@
+## Instalando e compilando
+
+(testado no Ubuntu LTS 20.04)
+
+### Instalar `g++` versão 11
+
+Instala o g++ e gcc versão 11 e configura como padrão. Note que esses comandos
+talvez não funcionem se os compiladores já estiverem configurados com outras
+versões com maior prioridade. Portanto, após executar os comandos abaixo,
+verifique `g++ --version` para ver se a operação foi bem sucedida.
+
+```sh
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt update && sudo apt install gcc-11 g++-11
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 20
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 20
+```
+
+### Instalar o `SFML`
+
+```sh
+sudo apt install libsfml-dev
+```
+
+### Compilar
+
+No diretório do projeto, execute
+
+```sh
+# Irá usar o número de CPUS virtuais para agilizar a compilação.
+make -j$(nproc)
+```
 
 ## Contribuindo
 
