@@ -22,13 +22,26 @@ sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 20
 sudo apt install libsfml-dev
 ```
 
-### Compilar
+### Baixar e compilar o projeto
 
-No diretório do projeto, execute
+Primeiro clone o repositório
+
+```sh
+git clone https://github.com/GabrielDertoni/not-dual
+cd not-dual
+```
+
+E então, para compilar o projeto simplesmente execute
 
 ```sh
 # Irá usar o número de CPUS virtuais para agilizar a compilação.
 make -j$(nproc)
+```
+
+Por fim, o jogo pode ser executado
+
+```sh
+./not_dual
 ```
 
 ## Contribuindo
