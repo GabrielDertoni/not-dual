@@ -30,8 +30,8 @@ GameObject::GameObject(const GameObject& other) :
 {
     setTag(other.getTag());
 
-    for (auto& [key, component] : other.components) {
-        addComponentUniqueWithId(key, component->clone());
+    for (auto& component : other.components) {
+        components.push_back(component->clone());
     }
 }
 
@@ -56,14 +56,14 @@ void GameObject::destroy() {
 }
 
 void GameObject::initialize(size_t self) {
-    for (auto& [key, component] : components) {
+    for (auto& component : components) {
         Behaviour *behaviour = dynamic_cast<Behaviour*>(component.get());
         if (behaviour) behaviour->initialize(*this);
     }
 }
 
 void GameObject::update(size_t self) {
-    for (auto& [key, component] : components) {
+    for (auto& component : components) {
         Behaviour *behaviour = dynamic_cast<Behaviour*>(component.get());
         if (behaviour) behaviour->update(*this);
     }
@@ -106,10 +106,6 @@ sf::Vector2f GameObject::getDir() const {
     return sf::Vector2f(cos(ang), sin(ang));
 }
 
-void GameObject::addComponentUniqueWithId(size_t id, std::unique_ptr<Component> component) {
-    components.insert(std::make_pair(id, std::move(component)));
-}
-
 Component::Component() {}
 
 /* Static stuff */
@@ -146,6 +142,10 @@ void GameObject::addGameObject(GameObject gameObject) {
     instantiateQueue.push_back(std::move(gameObject));
 }
 
+void GameObject::addComponentUnique(std::unique_ptr<Component> component) {
+    components.push_back(std::move(component));
+}
+
 std::vector<GameObject>& GameObject::getGameObjects() {
     return instances;
 }
@@ -165,8 +165,8 @@ GameObject GameObjectBuilder::build() {
     GameObject obj = GameObject(transform);
     obj.tag = tag;
 
-    for (auto& [key, component] : components) {
-        obj.addComponentUniqueWithId(key, component->clone());
+    for (auto& component : components) {
+        obj.addComponentUnique(component->clone());
     }
     return obj;
 }

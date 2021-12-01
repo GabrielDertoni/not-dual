@@ -55,7 +55,8 @@ public:
     template <typename F>
     GameObjectBuilder& addComponentFrom(F getComponent)
         requires std::is_invocable<F>::value
-              && std::is_copy_constructible<decltype(getComponent())>::value;
+              && std::is_copy_constructible<decltype(getComponent())>::value
+              && std::is_base_of<Component, decltype(getComponent())>::value;
 
     GameObject build();
     void registerGameObject();
@@ -63,7 +64,7 @@ public:
 private:
     Transform transform;
     std::string tag;
-    std::unordered_map<size_t, std::unique_ptr<Component>> components;
+    std::vector<std::unique_ptr<Component>> components;
 };
 
 class GameObject {
@@ -95,6 +96,8 @@ public:
     T& addComponent(Args&&... args)
         requires std::is_base_of<Component, T>::value;
 
+    void addComponentUnique(std::unique_ptr<Component> component);
+
     template <class T>
     T& getComponent()
         requires std::is_base_of<Component, T>::value;
@@ -106,9 +109,7 @@ public:
 private:
     std::string tag;
     bool shouldBeDestroyed;
-    std::unordered_map<size_t, std::unique_ptr<Component>> components;
-
-    void addComponentUniqueWithId(size_t id, std::unique_ptr<Component> component);
+    std::vector<std::unique_ptr<Component>> components;
 
     friend GameObject GameObjectBuilder::build();
 
@@ -141,64 +142,49 @@ T& GameObject::getComponent()
     requires std::is_base_of<Component, T>::value
 {
     const std::type_info& id = typeid(T);
-    auto it = components.find(id.hash_code());
-    if (it == components.end()) {
-        std::stringstream s;
-        s << "Component " << id.name() << " not found in GameObject";
-        throw std::runtime_error(std::move(s.str()));
+    for (auto& component : components) {
+        T* ptr = dynamic_cast<T*>(component.get());
+        if (ptr != nullptr) return *ptr;
     }
-    return *dynamic_cast<T*>(it->second.get());
+
+    std::stringstream s;
+    s << "Component " << id.name() << " not found in GameObject";
+    throw std::runtime_error(std::move(s.str()));
 }
 
 template <class T>
 bool GameObject::hasComponent()
     requires std::is_base_of<Component, T>::value
 {
-    return components.find(typeid(T).hash_code()) != components.end();
+    for (auto& component : components) {
+        T* ptr = dynamic_cast<T*>(component.get());
+        if (ptr != nullptr) return true;
+    }
+    return false;
 }
 
 template <class T, class... Args>
 T& GameObject::addComponent(Args&&... args)
     requires std::is_base_of<Component, T>::value
 {
-    const std::type_info& info = typeid(T);
-    auto [it, ok] = components.insert(std::make_pair(info.hash_code(), std::make_unique<T>(args...)));
-
-    if (!ok) {
-        std::stringstream s;
-        s << "Component " << info.name() << " was already present in GameObject";
-        throw std::runtime_error(std::move(s.str()));
-    }
-
-    return *dynamic_cast<T*>(it->second.get());
+    std::unique_ptr<T> comp = std::make_unique<T>(args...);
+    T* ptr = comp.get();
+    std::unique_ptr<Component> c = comp;
+    addComponentUnique(std::move(comp));
+    return *ptr;
 }
 
 /* GameObjectBuilder */
 
-
 template <typename T, class... Args>
 GameObjectBuilder& GameObjectBuilder::addComponent(Args&&... args) {
-    const std::type_info& info = typeid(T);
-    auto [it, ok] = components.insert(std::make_pair(info.hash_code(), std::make_unique<T>(args...)));
-
-    if (!ok) {
-        std::stringstream s;
-        s << "Component " << info.name() << " was already present in GameObject";
-        throw std::runtime_error(std::move(s.str()));
-    }
+    components.push_back(std::make_unique<T>(args...));
     return *this;
 }
 
 template <typename T>
 GameObjectBuilder& GameObjectBuilder::addComponentUnique(std::unique_ptr<T> component) {
-    const std::type_info& info = typeid(T);
-    auto [it, ok] = components.insert(std::make_pair(info.hash_code(), std::move(component)));
-
-    if (!ok) {
-        std::stringstream s;
-        s << "Component " << info.name() << " was already present in GameObject";
-        throw std::runtime_error(std::move(s.str()));
-    }
+    components.push_back(std::move(component));
     return *this;
 }
 
@@ -206,17 +192,9 @@ template <typename F>
 GameObjectBuilder& GameObjectBuilder::addComponentFrom(F getComponent)
     requires std::is_invocable<F>::value
           && std::is_copy_constructible<decltype(getComponent())>::value
+          && std::is_base_of<Component, decltype(getComponent())>::value
 {
-    const std::type_info& info = typeid(decltype(getComponent()));
-    auto [it, ok] = components.insert(
-            std::make_pair(info.hash_code(),
-                           std::make_unique<decltype(getComponent())>(getComponent())));
-
-    if (!ok) {
-        std::stringstream s;
-        s << "Component " << info.name() << " was already present in GameObject";
-        throw std::runtime_error(std::move(s.str()));
-    }
+    components.push_back(std::make_unique<decltype(getComponent())>(getComponent()));
     return *this;
 }
 
