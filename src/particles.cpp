@@ -9,7 +9,7 @@
 
 // TODO(#4): Parameterize those macros in the constructors.
 #define N 10
-#define PARTICLE_EMIT_INTERVAL (std::chrono::milliseconds(100))
+#define PARTICLE_EMIT_INTERVAL (std::chrono::seconds(5))
 #define PARTICLE_SIZE 5
 #define PARTICLE_IMPULSE 2.0f
 #define PARTICLE_TTL (std::chrono::milliseconds(500))
