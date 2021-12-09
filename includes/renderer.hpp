@@ -19,9 +19,7 @@ class Renderer: public Component, public sf::Drawable {
 
 class RectangleRenderer: public Renderer {
 public:
-    virtual std::unique_ptr<Component> clone() const {
-        return std::make_unique<RectangleRenderer>(*this);
-    }
+    DERIVE_CLONE_COMPONENT
 
     RectangleRenderer(sf::Color color, sf::Vector2f size);
     RectangleRenderer(sf::Vector2f size);
@@ -34,6 +32,6 @@ private:
     sf::RectangleShape rect;
 };
 
-// TODO: SpriteRenderer
+// TODO(#9): SpriteRenderer
 
 #endif
