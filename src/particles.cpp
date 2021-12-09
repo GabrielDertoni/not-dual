@@ -7,7 +7,6 @@
 #include "includes/renderer.hpp"
 #include "includes/utils.hpp"
 
-// TODO(#4): Parameterize those macros in the constructors.
 ParticleEmitter::ParticleEmitter(int numEmitAtOnce, int emitInterval,
                                  float avgParticleImpulse, GameObjectBuilder particleBuilder) :
     numEmitAtOnce(numEmitAtOnce),
