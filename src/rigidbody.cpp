@@ -1,11 +1,16 @@
 
 #include "includes/rigidbody.hpp"
 
-RigidBody::RigidBody(float mass, float cof) :
+RigidBody::RigidBody(float mass, float cof, float accMult) :
     mass(mass),
     cof(cof),
+    accMult(accMult),
     velocity(0, 0),
     acceleration(0, 0)
+{}
+
+RigidBody::RigidBody(float mass, float cof) :
+    RigidBody(mass, cof, 0.5)
 {}
 
 RigidBody::RigidBody(float mass) :
@@ -31,7 +36,7 @@ void RigidBody::update(GameObject& gameObject) {
     acceleration = sf::Vector2f(0, 0);
 
     // TODO(#6): Parameterize in constructor.
-    acceleration *= DAMPENING_ACC;
+    acceleration *= accMult;
 
     applyForce(gravity);
 }

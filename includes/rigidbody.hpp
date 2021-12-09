@@ -6,12 +6,12 @@
 #include "includes/gameobj.hpp"
 #include "includes/utils.hpp"
 
-#define DAMPENING     0.97f
-#define DAMPENING_ACC 0.5f
-
 class RigidBody: public Behaviour {
 public:
-    // Mass and coefficient of friction
+    // Mass, coefficient of friction and acceleation multiplier. `accMult`
+    // specifies how much the acceleration will be multiplied by in every
+    // iteration.
+    RigidBody(float mass, float cof, float accMult);
     RigidBody(float mass, float cof);
     RigidBody(float mass);
     RigidBody(const RigidBody& other);
@@ -25,6 +25,7 @@ public:
 
     float mass;
     float cof;
+    float accMult;
     sf::Vector2f velocity;
     sf::Vector2f acceleration;
     sf::Vector2f gravity;
