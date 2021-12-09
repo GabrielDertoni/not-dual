@@ -34,7 +34,7 @@ void ParticleEmitter::update(GameObject& gameObject) {
                     rb.applyForce(dir * impulse);
                     return rb;
                 })
-                .addComponent<Renderer>(RectangleShape(sf::Vector2f(PARTICLE_SIZE, PARTICLE_SIZE)))
+                .addComponent<RectangleRenderer>(sf::Vector2f(PARTICLE_SIZE, PARTICLE_SIZE))
                 .registerGameObject();
         }
 
@@ -66,7 +66,6 @@ void Particle::update(GameObject& gameObject) {
     sf::Color curr = colorLerp(color, sf::Color(255, 255, 255, 0), lerp);
 
     // TODO(#5): Make this more ergonomic.
-    Renderer& renderer = gameObject.getComponent<Renderer>();
-    RectangleShape* shape = dynamic_cast<RectangleShape*>(renderer.unsafeDrawablePtr());
-    shape->setColor(curr);
+    RectangleRenderer& renderer = gameObject.getComponent<RectangleRenderer>();
+    renderer.setColor(curr);
 }

@@ -79,7 +79,7 @@ int main() {
     GameObjectBuilder(Transform(leftPlayerStartPos, 0))
         .withTag("Player1")
         .addComponent<Player>(&wasdController, Player::LEFT)
-        .addComponent<Renderer>(Spaceship(sf::Color::Green, PLAYER_SIZE))
+        .addComponent<SpaceshipRenderer>(sf::Color::Green, PLAYER_SIZE)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f)
         .registerGameObject();
@@ -87,13 +87,13 @@ int main() {
     GameObjectBuilder(Transform(rightPlayerStartPos, 0))
         .withTag("Player2")
         .addComponent<Player>(&arrowsController, Player::RIGHT)
-        .addComponent<Renderer>(Spaceship(sf::Color::Blue, PLAYER_SIZE))
+        .addComponent<SpaceshipRenderer>(sf::Color::Blue, PLAYER_SIZE)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f)
         .registerGameObject();
 
     GameObjectBuilder(Transform(sf::Vector2f(WIDTH/2 - 1, 0), 0))
-        .addComponent<Renderer>(RectangleShape(sf::Vector2f(2, HEIGHT)))
+        .addComponent<RectangleRenderer>(sf::Vector2f(2, HEIGHT))
         .registerGameObject();
 
     auto superPowerPos1 = sf::Vector2f(250, HEIGHT / 2);

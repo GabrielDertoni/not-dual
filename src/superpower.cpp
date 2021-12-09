@@ -50,7 +50,7 @@ void Spawner::update(GameObject& gameObject) {
             .addComponent<SuperPower>(getNow())
             .addComponent<ParticleEmitter>()
             .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
-            .addComponent<Renderer>(RectangleShape(sf::Color::Red, sf::Vector2f(POWER_SIZE, POWER_SIZE)))
+            .addComponent<RectangleRenderer>(sf::Color::Red, sf::Vector2f(POWER_SIZE, POWER_SIZE))
             .registerGameObject();
 
         lastPower = getNow();

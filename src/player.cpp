@@ -84,11 +84,11 @@ void Player::update(GameObject& gameObject) {
         if (hasPower) {
             builder
                 .addComponent<BoxCollider>(sf::Vector2f(SUPER_BULLET_SIZE, SUPER_BULLET_SIZE))
-                .addComponent<Renderer>(RectangleShape(sf::Vector2f(SUPER_BULLET_SIZE, SUPER_BULLET_SIZE)));
+                .addComponent<RectangleRenderer>(sf::Vector2f(SUPER_BULLET_SIZE, SUPER_BULLET_SIZE));
         } else {
             builder
                 .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
-                .addComponent<Renderer>(RectangleShape(sf::Vector2f(BULLET_SIZE, BULLET_SIZE)));
+                .addComponent<RectangleRenderer>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE));
         }
 
         builder.registerGameObject();
@@ -165,8 +165,7 @@ void Player::update(GameObject& gameObject) {
             && collider.intersects(obj.getComponent<BoxCollider>());
     };
 
-    Renderer& renderer = gameObject.getComponent<Renderer>();
-    Spaceship* mesh = dynamic_cast<Spaceship*>(renderer.unsafeDrawablePtr());
+    SpaceshipRenderer& renderer = gameObject.getComponent<SpaceshipRenderer>();
 
     for (auto& bullet : GameObject::getGameObjects()
                       | views::filter(isBulletHit))
@@ -179,7 +178,7 @@ void Player::update(GameObject& gameObject) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
             sf::Vector2f dir(cos(ang), sin(ang));
             GameObjectBuilder(gameObject.transform)
-                .addComponent<Particle>(mesh->getColor())
+                .addComponent<Particle>(renderer.getColor())
                 .addComponentFrom([&] {
                     RigidBody rb(1.0f);
                     float impulse = PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
@@ -187,7 +186,7 @@ void Player::update(GameObject& gameObject) {
                     rb.setGravity(sf::Vector2f(0, 0.5f));
                     return rb;
                 })
-                .addComponent<Renderer>(RectangleShape(sf::Vector2f(PARTICLE_SIZE, PARTICLE_SIZE)))
+                .addComponent<RectangleRenderer>(sf::Vector2f(PARTICLE_SIZE, PARTICLE_SIZE))
                 .registerGameObject();
         }
     }

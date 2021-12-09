@@ -10,19 +10,20 @@
 #include "includes/gameobj.hpp"
 #include "includes/renderer.hpp"
 
-class Spaceship: public DrawableClonable {
+class SpaceshipRenderer: public Renderer {
 public:
-    Spaceship(sf::Color color, float size);
-    Spaceship(const Spaceship& other);
+    DERIVE_CLONE_COMPONENT
 
-    virtual std::unique_ptr<DrawableClonable> clone() const;
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+    SpaceshipRenderer(sf::Color color, float size);
+    SpaceshipRenderer(const SpaceshipRenderer& other);
 
     sf::Color getColor() const;
 
 private:
     float size;
     sf::RectangleShape shape;
+
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
 
 #endif
