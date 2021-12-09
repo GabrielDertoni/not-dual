@@ -24,7 +24,7 @@ public:
     // Clone the component. Most implementation should just call the copy
     // constructor of the concrete class.
     // TODO(#3): Make `virtual std::unique_ptr<Component> clone() const = 0`
-    virtual std::unique_ptr<Component> clone() = 0;
+    virtual std::unique_ptr<Component> clone() const = 0;
 };
 
 class Transform {

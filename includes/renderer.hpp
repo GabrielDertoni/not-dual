@@ -19,7 +19,9 @@ class Renderer: public Component, public sf::Drawable {
 
 class RectangleRenderer: public Renderer {
 public:
-    DERIVE_CLONE_COMPONENT
+    virtual std::unique_ptr<Component> clone() const {
+        return std::make_unique<RectangleRenderer>(*this);
+    }
 
     RectangleRenderer(sf::Color color, sf::Vector2f size);
     RectangleRenderer(sf::Vector2f size);
