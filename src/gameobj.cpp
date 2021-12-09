@@ -12,10 +12,28 @@ Transform::Transform(const Transform& other) :
     Transform(other.position, other.angle)
 {}
 
-sf::Transform Transform::getTranformMatrix() {
+sf::Transform Transform::getTransformMatrix() const {
     sf::Transform t;
     t.rotate(angle).translate(position);
     return t;
+}
+
+Transform operator* (const Transform& lhs, const Transform& rhs) {
+    // FIXME(#8): This is probably wrong.
+    // Transform multiplication is actually a matrix multiplication, but when
+    // the components are sperated like this, I don't know how to do it.
+    // However, it should work forn now.
+    //
+    // One possibility is to do something like
+    //
+    // ```cpp
+    // sf::Transform t = lhs.getTransformMatrix() * rhs.getTransformMatrix();
+    // sf::Vector2f origin = t.transformPoint(sf::Vector2f(0.0, 0.0));
+    // sf::Vector2f down   = t.transformPoint(sf::Vector2f(1.0, 0.0));
+    // // Do something with `down` in order to figure out the angle and `origin`
+    // // is the position.
+    // ```
+    return Transform(rhs.position - lhs.position, rhs.angle - lhs.angle);
 }
 
 GameObject::GameObject(Transform transform) :
