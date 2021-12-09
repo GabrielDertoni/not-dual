@@ -20,12 +20,10 @@ namespace views = std::views;
 #include "includes/superpower.hpp"
 #include "includes/particles.hpp"
 
-#define N_PARTICLES 50
-#define PARTICLE_SIZE 5
-#define PARTICLE_IMPULSE 2.0f
-#define PARTICLE_TTL (std::chrono::milliseconds(1000))
-#define PARTICLE_VANISH_RATE 0.05f
-
+#define BLOOD_N_PARTICLES      50
+#define BLOOD_PARTICLE_SIZE    5
+#define BLOOD_PARTICLE_IMPULSE 2.0f
+#define BLOOD_PARTICLE_TTL     1000 // Milliseconds
 
 static const sf::Vector2f size(PLAYER_SIZE, PLAYER_SIZE);
 
@@ -174,19 +172,19 @@ void Player::update(GameObject& gameObject) {
         life -= behaviour.isSuper ? SUPER_BULLET_DAMAGE : BULLET_DAMAGE;
         bullet.destroy();
 
-        for (int i = 0; i < N_PARTICLES; i++) {
+        for (int i = 0; i < BLOOD_N_PARTICLES; i++) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
             sf::Vector2f dir(cos(ang), sin(ang));
             GameObjectBuilder(gameObject.transform)
-                .addComponent<Particle>(renderer.getColor())
+                .addComponent<Particle>(renderer.getColor(), BLOOD_PARTICLE_TTL, 0.01)
                 .addComponentFrom([&] {
                     RigidBody rb(1.0f);
-                    float impulse = PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
+                    float impulse = BLOOD_PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
                     rb.applyForce(dir * impulse);
                     rb.setGravity(sf::Vector2f(0, 0.5f));
                     return rb;
                 })
-                .addComponent<RectangleRenderer>(sf::Vector2f(PARTICLE_SIZE, PARTICLE_SIZE))
+                .addComponent<RectangleRenderer>(sf::Vector2f(BLOOD_PARTICLE_SIZE, BLOOD_PARTICLE_SIZE))
                 .registerGameObject();
         }
     }

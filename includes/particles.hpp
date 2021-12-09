@@ -9,32 +9,40 @@
 
 class Particle: public Behaviour {
 public:
-    Particle(sf::Color color);
-    Particle(const Particle& other);
-
     DERIVE_CLONE_COMPONENT
 
-private:
-    virtual void initialize(GameObject& gameObject);
-    virtual void update(GameObject& gameObject);
+    // ttl is Time to Live (measured in milliseconds)
+    Particle(sf::Color color, int ttl, float vanishRate);
+    Particle(const Particle& other);
 
+private:
     sf::Color color;
+    int ttl;
+    float vanishRate;
     float lerp;
     Timestamp created;
+
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
 };
 
 class ParticleEmitter: public Behaviour {
 public:
-    ParticleEmitter() = default;
-    ParticleEmitter(const ParticleEmitter& other) = default;
-
     DERIVE_CLONE_COMPONENT
 
+    ParticleEmitter(int numEmitAtOnce, int emitInterval,
+                    float avgParticleImpulse, GameObjectBuilder particleBuilder);
+    ParticleEmitter(const ParticleEmitter& other);
+
 private:
+    int numEmitAtOnce;
+    int emitInterval;
+    float avgParticleImpulse;
+    GameObjectBuilder particleBuilder;
+    Timestamp lastEmitted;
+
     virtual void initialize(GameObject& gameObject);
     virtual void update(GameObject& gameObject);
-
-    Timestamp lastEmitted;
 };
 
 #endif

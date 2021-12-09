@@ -21,10 +21,10 @@ sf::Color colorLerp(sf::Color start, sf::Color end, float lerp);
 // class_t is the type of the class itself. So, if `this` has type `const *BoxCollider`,
 // for example, then `class_t` will be just `BoxCollider`. We first remove the pointer
 // and then the `const` of the type of `this`.
-#define DERIVE_CLONE_COMPONENT                                                              \
-    virtual std::unique_ptr<Component> clone() const {                                      \
-        typedef std::remove_const<std::remove_pointer<decltype(this)>::type>::type class_t; \
-        return std::make_unique<class_t>(*this);                                            \
+#define DERIVE_CLONE_COMPONENT                                                      \
+    virtual std::unique_ptr<Component> clone() const {                              \
+        typedef std::remove_const_t<std::remove_pointer_t<decltype(this)>> class_t; \
+        return std::make_unique<class_t>(*this);                                    \
     }
 
 #endif

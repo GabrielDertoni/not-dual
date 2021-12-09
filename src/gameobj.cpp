@@ -174,6 +174,15 @@ GameObjectBuilder::GameObjectBuilder(Transform transform) :
     transform(transform)
 {}
 
+GameObjectBuilder::GameObjectBuilder(const GameObjectBuilder& other) :
+    transform(other.transform)
+{
+    tag = other.tag;
+    for (auto& component : components) {
+        addComponentUnique(component->clone());
+    }
+}
+
 GameObjectBuilder& GameObjectBuilder::withTag(std::string&& tag) {
     this->tag = std::move(tag);
     return *this;

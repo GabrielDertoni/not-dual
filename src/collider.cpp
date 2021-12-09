@@ -18,13 +18,13 @@ bool BoxCollider::intersects(BoxCollider& other) {
 }
 
 void BoxCollider::initialize(GameObject& gameObject) {
-    sf::Transform matrix = gameObject.transform.getTranformMatrix();
+    sf::Transform matrix = gameObject.transform.getTransformMatrix();
     gLeftTop = matrix.transformPoint(leftTop);
     gRightBottom = matrix.transformPoint(rightBottom);
 }
 
 void BoxCollider::update(GameObject& gameObject) {
-    sf::Transform matrix = gameObject.transform.getTranformMatrix();
+    sf::Transform matrix = gameObject.transform.getTransformMatrix();
     gLeftTop = matrix.transformPoint(leftTop);
     gRightBottom = matrix.transformPoint(rightBottom);
 }

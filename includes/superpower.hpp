@@ -17,8 +17,6 @@ extern Timestamp globalCounter;
 
 class SuperPower: public Behaviour {
 public:
-    virtual void initialize(GameObject& gameObject);
-    virtual void update(GameObject& gameObject);
     DERIVE_CLONE_COMPONENT
 
     SuperPower(Timestamp created);
@@ -26,19 +24,22 @@ public:
 
 private:
     Timestamp lastPower;
+
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
 };
 
 class Spawner: public Behaviour {
 public:
-    virtual void initialize(GameObject& gameObject);
-    virtual void update(GameObject& gameObject);
-
     DERIVE_CLONE_COMPONENT
 
     Spawner(Timestamp created);
 
 private:
     Timestamp lastPower;
+
+    virtual void initialize(GameObject& gameObject);
+    virtual void update(GameObject& gameObject);
 };
 
 #endif

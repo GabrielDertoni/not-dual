@@ -81,7 +81,7 @@ int main() {
         .addComponent<Player>(&wasdController, Player::LEFT)
         .addComponent<SpaceshipRenderer>(sf::Color::Green, PLAYER_SIZE)
         .addComponent<BoxCollider>(-playerSize, playerSize)
-        .addComponent<RigidBody>(1.0f)
+        .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
 
     GameObjectBuilder(Transform(rightPlayerStartPos, 0))
@@ -89,7 +89,7 @@ int main() {
         .addComponent<Player>(&arrowsController, Player::RIGHT)
         .addComponent<SpaceshipRenderer>(sf::Color::Blue, PLAYER_SIZE)
         .addComponent<BoxCollider>(-playerSize, playerSize)
-        .addComponent<RigidBody>(1.0f)
+        .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
 
     GameObjectBuilder(Transform(sf::Vector2f(WIDTH/2 - 1, 0), 0))
@@ -136,7 +136,7 @@ int main() {
             if (obj.hasComponent<Renderer>()) {
                 std::unique_ptr<Component> comp = obj.getComponent<Renderer>().clone();
                 std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
-                dq.push_back(std::make_pair(obj.transform.getTranformMatrix(), std::move(renderer)));
+                dq.push_back(std::make_pair(obj.transform.getTransformMatrix(), std::move(renderer)));
             }
         }
 

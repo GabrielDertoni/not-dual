@@ -1,3 +1,4 @@
+#include <iostream>
 
 #include "includes/rigidbody.hpp"
 
@@ -23,6 +24,7 @@ RigidBody::RigidBody() :
 
 RigidBody::RigidBody(const RigidBody& other) :
     mass(other.mass),
+    cof(other.cof),
     velocity(other.velocity),
     acceleration(other.acceleration),
     gravity(other.gravity)

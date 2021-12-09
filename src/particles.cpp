@@ -8,12 +8,22 @@
 #include "includes/utils.hpp"
 
 // TODO(#4): Parameterize those macros in the constructors.
-#define N 10
-#define PARTICLE_EMIT_INTERVAL (std::chrono::seconds(5))
-#define PARTICLE_SIZE 5
-#define PARTICLE_IMPULSE 2.0f
-#define PARTICLE_TTL (std::chrono::milliseconds(500))
-#define PARTICLE_VANISH_RATE 0.01f
+ParticleEmitter::ParticleEmitter(int numEmitAtOnce, int emitInterval,
+                                 float avgParticleImpulse, GameObjectBuilder particleBuilder) :
+    numEmitAtOnce(numEmitAtOnce),
+    emitInterval(emitInterval),
+    avgParticleImpulse(avgParticleImpulse),
+    particleBuilder(particleBuilder)
+{}
+
+ParticleEmitter::ParticleEmitter(const ParticleEmitter& other) :
+    numEmitAtOnce(other.numEmitAtOnce),
+    emitInterval(other.emitInterval),
+    avgParticleImpulse(other.avgParticleImpulse),
+    particleBuilder(other.particleBuilder)
+{
+    lastEmitted = other.lastEmitted;
+}
 
 void ParticleEmitter::initialize(GameObject& gameObject) {
     lastEmitted = getNow();
@@ -22,19 +32,20 @@ void ParticleEmitter::initialize(GameObject& gameObject) {
 void ParticleEmitter::update(GameObject& gameObject) {
     Timestamp now = getNow();
 
-    if (now - lastEmitted >= PARTICLE_EMIT_INTERVAL) {
-        for (int i = 0; i < N; i++) {
+    if (now - lastEmitted >= std::chrono::milliseconds(emitInterval)) {
+        for (int i = 0; i < numEmitAtOnce; i++) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
             sf::Vector2f dir(cos(ang), sin(ang));
-            GameObjectBuilder(gameObject.transform)
-                .addComponent<Particle>(sf::Color::Red)
+            particleBuilder
+                .mapTransform([&](Transform transform) -> Transform {
+                    return transform * gameObject.transform;
+                })
                 .addComponentFrom([&] {
                     RigidBody rb(1.0f);
-                    float impulse = PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
+                    float impulse = avgParticleImpulse * (0.2 + (float)(rand() % 100) / 100.0);
                     rb.applyForce(dir * impulse);
                     return rb;
                 })
-                .addComponent<RectangleRenderer>(sf::Vector2f(PARTICLE_SIZE, PARTICLE_SIZE))
                 .registerGameObject();
         }
 
@@ -42,13 +53,17 @@ void ParticleEmitter::update(GameObject& gameObject) {
     }
 }
 
-Particle::Particle(sf::Color color) :
+Particle::Particle(sf::Color color, int ttl, float vanishRate) :
     color(color),
+    ttl(ttl),
+    vanishRate(vanishRate),
     lerp(0)
 {}
 
 Particle::Particle(const Particle& other) :
     color(other.color),
+    ttl(other.ttl),
+    vanishRate(other.vanishRate),
     lerp(other.lerp)
 {}
 
@@ -58,11 +73,11 @@ void Particle::initialize(GameObject& gameObject) {
 
 void Particle::update(GameObject& gameObject) {
     Timestamp now = getNow();
-    if (now - created >= PARTICLE_TTL) {
+    if (now - created >= std::chrono::milliseconds(ttl)) {
         gameObject.destroy();
     }
 
-    lerp = lerp + PARTICLE_VANISH_RATE > 1 ? 1 : lerp + PARTICLE_VANISH_RATE;
+    lerp = lerp + vanishRate > 1 ? 1 : lerp + vanishRate;
     sf::Color curr = colorLerp(color, sf::Color(255, 255, 255, 0), lerp);
 
     RectangleRenderer& renderer = gameObject.getComponent<RectangleRenderer>();
