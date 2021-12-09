@@ -17,6 +17,10 @@ RigidBody::RigidBody(float mass) :
     RigidBody(mass, 1)
 {}
 
+RigidBody::RigidBody() :
+    RigidBody(1)
+{}
+
 RigidBody::RigidBody(const RigidBody& other) :
     mass(other.mass),
     velocity(other.velocity),
@@ -29,13 +33,9 @@ void RigidBody::initialize(GameObject& gameObject) {}
 void RigidBody::update(GameObject& gameObject) {
     gameObject.transform.position += velocity;
     velocity += acceleration;
-
-
     velocity *= cof;
     acceleration = sf::Vector2f(0, 0);
-
     acceleration *= accMult;
-
     applyForce(gravity);
 }
 
