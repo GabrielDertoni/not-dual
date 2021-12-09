@@ -11,6 +11,8 @@
 
 class RigidBody: public Behaviour {
 public:
+    // Mass and coefficient of friction
+    RigidBody(float mass, float cof);
     RigidBody(float mass);
     RigidBody(const RigidBody& other);
 
@@ -22,6 +24,7 @@ public:
     DERIVE_CLONE_COMPONENT
 
     float mass;
+    float cof;
     sf::Vector2f velocity;
     sf::Vector2f acceleration;
     sf::Vector2f gravity;

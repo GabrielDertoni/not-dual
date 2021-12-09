@@ -1,10 +1,15 @@
 
 #include "includes/rigidbody.hpp"
 
-RigidBody::RigidBody(float mass) :
+RigidBody::RigidBody(float mass, float cof) :
     mass(mass),
+    cof(cof),
     velocity(0, 0),
     acceleration(0, 0)
+{}
+
+RigidBody::RigidBody(float mass) :
+    RigidBody(mass, 1)
 {}
 
 RigidBody::RigidBody(const RigidBody& other) :
@@ -22,8 +27,8 @@ void RigidBody::update(GameObject& gameObject) {
 
     // TODO(#7): Reintroduce dampening but parameterized in the constructor. Default could be 1.
 
-    // velocity *= DAMPENING;
-    // acceleration = sf::Vector2f(0, 0);
+    velocity *= cof;
+    acceleration = sf::Vector2f(0, 0);
 
     // TODO(#6): Parameterize in constructor.
     acceleration *= DAMPENING_ACC;
