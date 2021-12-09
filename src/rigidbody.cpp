@@ -35,7 +35,6 @@ void RigidBody::update(GameObject& gameObject) {
     velocity *= cof;
     acceleration = sf::Vector2f(0, 0);
 
-    // TODO(#6): Parameterize in constructor.
     acceleration *= accMult;
 
     applyForce(gravity);
