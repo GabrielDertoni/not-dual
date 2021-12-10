@@ -30,15 +30,13 @@ class ParticleEmitter: public Behaviour {
 public:
     DERIVE_CLONE_COMPONENT
 
-    ParticleEmitter(int numEmitAtOnce, int emitInterval,
-                    float avgParticleImpulse, GameObjectBuilder particleBuilder);
+    ParticleEmitter(int numEmitAtOnce, int emitInterval, float avgParticleImpulse);
     ParticleEmitter(const ParticleEmitter& other);
 
 private:
     int numEmitAtOnce;
     int emitInterval;
     float avgParticleImpulse;
-    GameObjectBuilder particleBuilder;
     Timestamp lastEmitted;
 
     virtual void initialize(GameObject& gameObject);

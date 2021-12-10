@@ -29,15 +29,10 @@ void PowerSpawner::initialize(GameObject& gameObject) {
 void PowerSpawner::update(GameObject& gameObject) {
     Timestamp now = getNow();
 
-    auto particleBuilder = GameObjectBuilder(Transform(sf::Vector2f(0, 0), 0));
-    particleBuilder
-        .addComponent<Particle>(sf::Color::Red, 2000, 0.01)
-        .addComponent<RectangleRenderer>(sf::Vector2f(5, 5));
-
     if (now - *lastPower >= SUPER_POWER_INTERVAL) {
         GameObjectBuilder(gameObject.transform)
             .addComponent<SuperPower>()
-            .addComponent<ParticleEmitter>(10, 100, 3.0f, particleBuilder)
+            .addComponent<ParticleEmitter>(10, 100, 2.0f)
             .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
             .addComponent<RectangleRenderer>(sf::Color::Red, sf::Vector2f(POWER_SIZE, POWER_SIZE))
             .registerGameObject();

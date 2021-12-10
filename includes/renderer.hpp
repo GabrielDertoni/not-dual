@@ -10,7 +10,6 @@
 #include <SFML/Graphics/RenderStates.hpp>
 
 #include "includes/gameobj.hpp"
-#include "includes/rendering.hpp"
 #include "includes/utils.hpp"
 
 class Renderer: public Component, public sf::Drawable {

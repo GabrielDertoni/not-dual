@@ -5,7 +5,6 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "includes/rendering.hpp"
 #include "includes/spaceship.hpp"
 
 SpaceshipRenderer::SpaceshipRenderer(sf::Color color, float size) :

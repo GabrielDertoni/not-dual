@@ -14,7 +14,6 @@
 #include "includes/rigidbody.hpp"
 #include "includes/input.hpp"
 #include "includes/settings.hpp"
-#include "includes/rendering.hpp"
 #include "includes/superpower.hpp"
 #include "includes/time.hpp"
 
@@ -23,9 +22,9 @@ const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 std::binary_semaphore gameLoopStart(0);
 std::binary_semaphore gameLoopDone(1);
 
-bool done;
-
-bool gameIsOver = false;
+static bool done;
+static bool gameIsOver = false;
+static std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> drawQueue;
 
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
@@ -63,8 +62,6 @@ void populateEventQueue(sf::RenderWindow& window) {
         }
     }
 }
-
-std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> dq;
 
 int main() {
     sf::ContextSettings settings;
@@ -111,12 +108,12 @@ int main() {
         gameLoopStart.release();
 
         window.clear();
-        while (!dq.empty()) {
-            auto& [transform, drawable] = dq.front();
+        while (!drawQueue.empty()) {
+            auto& [transform, drawable] = drawQueue.front();
             sf::RenderStates states = sf::RenderStates::Default;
             states.transform *= transform;
             window.draw(*drawable, states);
-            dq.pop_front();
+            drawQueue.pop_front();
         }
         window.display();
 
@@ -133,7 +130,7 @@ int main() {
             if (obj->hasComponent<Renderer>()) {
                 std::unique_ptr<Component> comp = obj->getComponent<Renderer>().clone();
                 std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
-                dq.push_back(std::make_pair(obj->transform.getTransformMatrix(), std::move(renderer)));
+                drawQueue.push_back(std::make_pair(obj->transform.getTransformMatrix(), std::move(renderer)));
             }
         }
 

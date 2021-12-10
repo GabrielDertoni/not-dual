@@ -8,18 +8,16 @@
 #include "includes/utils.hpp"
 
 ParticleEmitter::ParticleEmitter(int numEmitAtOnce, int emitInterval,
-                                 float avgParticleImpulse, GameObjectBuilder particleBuilder) :
+                                 float avgParticleImpulse) :
     numEmitAtOnce(numEmitAtOnce),
     emitInterval(emitInterval),
-    avgParticleImpulse(avgParticleImpulse),
-    particleBuilder(particleBuilder)
+    avgParticleImpulse(avgParticleImpulse)
 {}
 
 ParticleEmitter::ParticleEmitter(const ParticleEmitter& other) :
     numEmitAtOnce(other.numEmitAtOnce),
     emitInterval(other.emitInterval),
-    avgParticleImpulse(other.avgParticleImpulse),
-    particleBuilder(other.particleBuilder)
+    avgParticleImpulse(other.avgParticleImpulse)
 {
     lastEmitted = other.lastEmitted;
 }
@@ -35,14 +33,14 @@ void ParticleEmitter::update(GameObject& gameObject) {
         for (int i = 0; i < numEmitAtOnce; i++) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
             sf::Vector2f dir(cos(ang), sin(ang));
-            GameObjectBuilder(gameObject.transform)
+            Transform transform = gameObject.transform;
+            transform.position += sf::Vector2f(
+                5 * ((float)(rand() % 100) / 50.0 - 1.0),
+                5 * ((float)(rand() % 100) / 50.0 - 1.0)
+            );
+            GameObjectBuilder(transform)
                 .addComponent<Particle>(sf::Color::Red, 500, 0.01)
-                .addComponent<RectangleRenderer>(sf::Vector2f(5, 5))
-            /*
-                .mapTransform([&](Transform) -> Transform {
-                    return gameObject.transform;
-                })
-                */
+                .addComponent<RectangleRenderer>(sf::Color::Red, sf::Vector2f(5, 5))
                 .addComponentFrom([&] {
                     RigidBody rb(1.0f);
                     float impulse = avgParticleImpulse * (0.2 + (float)(rand() % 100) / 100.0);

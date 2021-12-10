@@ -7,7 +7,6 @@
 #include "includes/gameobj.hpp"
 #include "includes/collider.hpp"
 #include "includes/renderer.hpp"
-#include "includes/rendering.hpp"
 #include "includes/time.hpp"
 
 #define POWER_SIZE 10
