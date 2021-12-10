@@ -66,8 +66,8 @@ void Player::update(GameObject& gameObject) {
     auto ellapsed = now - lastShot;
 
     if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
-        auto builder = GameObjectBuilder(gameObject.transform);
-        builder
+        float size = hasPower ? SUPER_BULLET_SIZE : BULLET_SIZE;
+        GameObjectBuilder(gameObject.transform)
             .withTag(std::string(gameObject.getTag()))
             .addComponent<Bullet>(hasPower)
             .addComponentFrom([&] {
@@ -76,20 +76,10 @@ void Player::update(GameObject& gameObject) {
                 dir.x = side == LEFT ? 1 : -1;
                 rb.setVelocity(dir * BULLET_SPEED);
                 return rb;
-            });
-
-
-        if (hasPower) {
-            builder
-                .addComponent<BoxCollider>(sf::Vector2f(SUPER_BULLET_SIZE, SUPER_BULLET_SIZE))
-                .addComponent<RectangleRenderer>(sf::Vector2f(SUPER_BULLET_SIZE, SUPER_BULLET_SIZE));
-        } else {
-            builder
-                .addComponent<BoxCollider>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE))
-                .addComponent<RectangleRenderer>(sf::Vector2f(BULLET_SIZE, BULLET_SIZE));
-        }
-
-        builder.registerGameObject();
+            })
+            .addComponent<BoxCollider>(sf::Vector2f(size, size))
+            .addComponent<RectangleRenderer>(sf::Vector2f(size, size))
+            .registerGameObject();
 
         lastShot = getNow();
         if (hasPower) hasPower = false;
@@ -152,25 +142,21 @@ void Player::update(GameObject& gameObject) {
     }
     rb.velocity = res;
 
-    auto isBulletHit = [&](GameObject& obj) {
-        return obj.hasComponent<Bullet>()
-            && obj.getTag() != gameObject.getTag()
-            && collider.intersects(obj.getComponent<BoxCollider>());
-    };
-
-    auto playerGetsPower = [&](GameObject& obj) {
-        return obj.hasComponent<SuperPower>()
-            && collider.intersects(obj.getComponent<BoxCollider>());
+    auto isBulletHit = [&](std::shared_ptr<GameObject> obj) {
+        return obj->hasComponent<Bullet>()
+            && obj->getTag() != gameObject.getTag()
+            && collider.intersects(obj->getComponent<BoxCollider>());
     };
 
     SpaceshipRenderer& renderer = gameObject.getComponent<SpaceshipRenderer>();
 
     for (auto& bullet : GameObject::getGameObjects()
+                      | views::values
                       | views::filter(isBulletHit))
     {
-        Bullet& behaviour = bullet.getComponent<Bullet>();
+        Bullet& behaviour = bullet->getComponent<Bullet>();
         life -= behaviour.isSuper ? SUPER_BULLET_DAMAGE : BULLET_DAMAGE;
-        bullet.destroy();
+        bullet->destroy();
 
         for (int i = 0; i < BLOOD_N_PARTICLES; i++) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
@@ -189,11 +175,17 @@ void Player::update(GameObject& gameObject) {
         }
     }
 
+    auto playerGetsPower = [&](std::shared_ptr<GameObject>& obj) {
+        return obj->hasComponent<SuperPower>()
+            && collider.intersects(obj->getComponent<BoxCollider>());
+    };
+
     for (auto& superPower : GameObject::getGameObjects()
+                          | views::values
                           | views::filter(playerGetsPower))
     {
         hasPower = true;
-        superPower.destroy();
+        superPower->destroy();
     }
 
 

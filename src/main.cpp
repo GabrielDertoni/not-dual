@@ -35,9 +35,8 @@ void gameLoop() {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        std::vector<GameObject>& objs = GameObject::getGameObjects();
-        for (size_t i = 0; i < objs.size(); i++) {
-            objs[i].update(i);
+        for (auto& [id, obj] : GameObject::getGameObjects()) {
+            obj->update();
         }
 
         // Destruction MUST HAPPEN BEFORE instantiation.
@@ -96,13 +95,11 @@ int main() {
         .addComponent<RectangleRenderer>(sf::Vector2f(2, HEIGHT))
         .registerGameObject();
 
-    auto superPowerPos1 = sf::Vector2f(250, HEIGHT / 2);
-    auto superPowerPos2 = sf::Vector2f(450, HEIGHT / 2);
-    GameObjectBuilder(Transform(superPowerPos1, 0))
-        .addComponent<Spawner>(getNow())
+    GameObjectBuilder(Transform(sf::Vector2f(250, HEIGHT / 2), 0))
+        .addComponent<PowerSpawner>()
         .registerGameObject();
-    GameObjectBuilder(Transform(superPowerPos2, 0))
-        .addComponent<Spawner>(getNow())
+    GameObjectBuilder(Transform(sf::Vector2f(450, HEIGHT / 2), 0))
+        .addComponent<PowerSpawner>()
         .registerGameObject();
 
     std::thread gameThread(gameLoop);
@@ -132,11 +129,11 @@ int main() {
         }
 
         // Push stuff to the draw queue
-        for (auto& obj : GameObject::getGameObjects()) {
-            if (obj.hasComponent<Renderer>()) {
-                std::unique_ptr<Component> comp = obj.getComponent<Renderer>().clone();
+        for (auto& [id, obj] : GameObject::getGameObjects()) {
+            if (obj->hasComponent<Renderer>()) {
+                std::unique_ptr<Component> comp = obj->getComponent<Renderer>().clone();
                 std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
-                dq.push_back(std::make_pair(obj.transform.getTransformMatrix(), std::move(renderer)));
+                dq.push_back(std::make_pair(obj->transform.getTransformMatrix(), std::move(renderer)));
             }
         }
 

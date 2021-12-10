@@ -35,10 +35,14 @@ void ParticleEmitter::update(GameObject& gameObject) {
         for (int i = 0; i < numEmitAtOnce; i++) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
             sf::Vector2f dir(cos(ang), sin(ang));
-            particleBuilder
-                .mapTransform([&](Transform transform) -> Transform {
-                    return transform * gameObject.transform;
+            GameObjectBuilder(gameObject.transform)
+                .addComponent<Particle>(sf::Color::Red, 500, 0.01)
+                .addComponent<RectangleRenderer>(sf::Vector2f(5, 5))
+            /*
+                .mapTransform([&](Transform) -> Transform {
+                    return gameObject.transform;
                 })
+                */
                 .addComponentFrom([&] {
                     RigidBody rb(1.0f);
                     float impulse = avgParticleImpulse * (0.2 + (float)(rand() % 100) / 100.0);

@@ -65,6 +65,7 @@ public:
         requires std::is_invocable_v<F, Transform>
               && std::is_same_v<Transform, std::invoke_result_t<F, Transform>>;
 
+    GameObjectBuilder copy();
     GameObject build();
     void registerGameObject();
 
@@ -86,8 +87,8 @@ public:
     GameObject& operator=(GameObject &&other);
 
     void destroy();
-    void initialize(size_t self);
-    void update(size_t self);
+    void initialize();
+    void update();
 
     void setTag(const std::string& tag);
     void setPosition(sf::Vector2f position);
@@ -98,6 +99,7 @@ public:
     float getRotation() const;
     float getRotationRad() const;
     sf::Vector2f getDir() const;
+    const std::string& getUUID() const;
 
     template <class T, class... Args>
     T& addComponent(Args&&... args)
@@ -117,20 +119,26 @@ private:
     std::string tag;
     bool shouldBeDestroyed;
     std::vector<std::unique_ptr<Component>> components;
+    std::string uuid;
 
     friend GameObject GameObjectBuilder::build();
 
 public:
-    static std::vector<GameObject>& getGameObjects();
+    static std::unordered_map<std::string, std::shared_ptr<GameObject>>& getGameObjects();
     static void addGameObject(GameObject gameObject);
-    static void markForDestruction(size_t idx);
+    static void markForDestruction(std::string id);
     static void destroyAllMarked();
     static void instantiateAllMarked();
 
 private:
-    static std::vector<GameObject> instances;
-    static std::deque<size_t> destroyQueue;
-    static std::deque<GameObject> instantiateQueue;
+    // static std::vector<GameObject> instances;
+    static std::unordered_map<std::string, std::shared_ptr<GameObject>> instances;
+
+    // A list of GameObject IDs to be destroyed by the end of the frame.
+    static std::deque<std::string> destroyQueue;
+
+    // A list of GameObjects to be instanciated by the end of the frame.
+    static std::deque<std::shared_ptr<GameObject>> instantiateQueue;
 };
 
 class Behaviour: public Component {
@@ -138,8 +146,8 @@ protected:
     virtual void initialize(GameObject& gameObject) = 0;
     virtual void update(GameObject& gameObject) = 0;
 
-    friend void GameObject::initialize(size_t self);
-    friend void GameObject::update(size_t self);
+    friend void GameObject::initialize();
+    friend void GameObject::update();
 };
 
 /* Implementation of generic functions */

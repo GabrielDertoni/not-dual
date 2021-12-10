@@ -24,7 +24,7 @@ public:
     {}
     BoxCollider(const BoxCollider& other);
 
-    bool intersects(BoxCollider& other);
+    bool intersects(BoxCollider& other) const;
 
     DERIVE_CLONE_COMPONENT
 

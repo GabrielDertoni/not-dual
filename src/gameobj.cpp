@@ -2,6 +2,7 @@
 #include <math.h>
 
 #include "includes/gameobj.hpp"
+#include "includes/uuid.hpp"
 
 Transform::Transform(sf::Vector2f position, float angle) :
     position(position),
@@ -39,7 +40,9 @@ Transform operator* (const Transform& lhs, const Transform& rhs) {
 GameObject::GameObject(Transform transform) :
     transform(transform),
     shouldBeDestroyed(false)
-{}
+{
+    uuid = uuid::generate_uuid_v4();
+}
 
 // Copy constructor.
 GameObject::GameObject(const GameObject& other) :
@@ -47,6 +50,7 @@ GameObject::GameObject(const GameObject& other) :
     shouldBeDestroyed(other.shouldBeDestroyed)
 {
     setTag(other.getTag());
+    uuid = uuid::generate_uuid_v4();
 
     for (auto& component : other.components) {
         components.push_back(component->clone());
@@ -58,6 +62,7 @@ GameObject::GameObject(GameObject&& other) :
     shouldBeDestroyed(other.shouldBeDestroyed)
 {
     tag = std::move(other.tag);
+    uuid = std::move(other.uuid);
     std::swap(components, other.components);
 }
 
@@ -65,6 +70,7 @@ GameObject& GameObject::operator=(GameObject &&other) {
     transform = other.transform;
     shouldBeDestroyed = other.shouldBeDestroyed;
     tag = std::move(other.tag);
+    uuid = std::move(other.uuid);
     components = std::move(other.components);
     return *this;
 }
@@ -73,21 +79,21 @@ void GameObject::destroy() {
     shouldBeDestroyed = true;
 }
 
-void GameObject::initialize(size_t self) {
+void GameObject::initialize() {
     for (auto& component : components) {
         Behaviour *behaviour = dynamic_cast<Behaviour*>(component.get());
         if (behaviour) behaviour->initialize(*this);
     }
 }
 
-void GameObject::update(size_t self) {
+void GameObject::update() {
     for (auto& component : components) {
         Behaviour *behaviour = dynamic_cast<Behaviour*>(component.get());
         if (behaviour) behaviour->update(*this);
     }
 
     if (shouldBeDestroyed) {
-        markForDestruction(self);
+        markForDestruction(uuid);
     }
 }
 
@@ -124,47 +130,57 @@ sf::Vector2f GameObject::getDir() const {
     return sf::Vector2f(cos(ang), sin(ang));
 }
 
+const std::string& GameObject::getUUID() const {
+    return uuid;
+}
+
 Component::Component() {}
 
 /* Static stuff */
 
-std::vector<GameObject> GameObject::instances;
-std::deque<size_t> GameObject::destroyQueue;
-std::deque<GameObject> GameObject::instantiateQueue;
+// std::vector<GameObject> GameObject::instances;
+std::unordered_map<std::string, std::shared_ptr<GameObject>> GameObject::instances;
+std::deque<std::string> GameObject::destroyQueue;
+std::deque<std::shared_ptr<GameObject>> GameObject::instantiateQueue;
 
-void GameObject::markForDestruction(size_t idx) {
-    destroyQueue.push_back(idx);
+void GameObject::markForDestruction(std::string id) {
+    destroyQueue.push_back(id);
 }
 
 void GameObject::destroyAllMarked() {
-    sort(destroyQueue.begin(), destroyQueue.end());
     while (!destroyQueue.empty()) {
-        // Swap with last element and remove. O(1)
-        std::swap(instances[destroyQueue.back()], *--instances.end());
-        instances.pop_back();
-        destroyQueue.pop_back();
+        std::string& id = destroyQueue.front();
+        auto it = instances.find(id);
+        if (it == instances.end()) {
+            throw std::runtime_error("unexpected object to destroy is already destroyed");
+        }
+        instances.erase(it);
+        destroyQueue.pop_front();
     }
 }
 
 void GameObject::instantiateAllMarked() {
     while (!instantiateQueue.empty()) {
-        instances.push_back(std::move(instantiateQueue.front()));
-        instantiateQueue.pop_front();
+        std::string uuid = instantiateQueue.front()->getUUID();
+        auto [it, ok] = instances.insert(std::make_pair(uuid, std::move(instantiateQueue.front())));
 
-        size_t i = instances.size() - 1;
-        instances[i].initialize(i);
+        if (!ok) {
+            throw std::runtime_error("unable to insert GameObject, UUID already present");
+        }
+        instantiateQueue.pop_front();
+        it->second->initialize();
     }
 }
 
 void GameObject::addGameObject(GameObject gameObject) {
-    instantiateQueue.push_back(std::move(gameObject));
+    instantiateQueue.push_back(std::make_shared<GameObject>(std::move(gameObject)));
 }
 
 void GameObject::addComponentUnique(std::unique_ptr<Component> component) {
     components.push_back(std::move(component));
 }
 
-std::vector<GameObject>& GameObject::getGameObjects() {
+std::unordered_map<std::string, std::shared_ptr<GameObject>>& GameObject::getGameObjects() {
     return instances;
 }
 
@@ -185,6 +201,10 @@ GameObjectBuilder::GameObjectBuilder(const GameObjectBuilder& other) :
 
 GameObjectBuilder& GameObjectBuilder::withTag(std::string&& tag) {
     this->tag = std::move(tag);
+    return *this;
+}
+
+GameObjectBuilder GameObjectBuilder::copy() {
     return *this;
 }
 
