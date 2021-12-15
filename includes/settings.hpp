@@ -3,8 +3,10 @@
 
 #include <SFML/System/Vector2.hpp>
 
-#define WIDTH  600
-#define HEIGHT 400
+#define WIDTH  640
+#define HEIGHT 480
+
+#define BG_PATH "./imgs/bg.png"
 
 #define PLAYER_SIZE 20
 

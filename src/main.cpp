@@ -100,6 +100,12 @@ int main() {
         .addComponent<PowerSpawner>()
         .registerGameObject();
 
+    // modularizar -------------------------------------------------------------
+    sf::Texture bg;
+    bg.loadFromFile(BG_PATH);
+    sf::Sprite bgSprite(bg);
+    // -------------------------------------------------------------------------
+
     std::thread gameThread(gameLoop);
 
     done = false;
@@ -110,6 +116,10 @@ int main() {
         gameLoopStart.release();
 
         window.clear();
+
+        // modularizar ---------------------------------------------------------
+        window.draw(bgSprite);
+        // ---------------------------------------------------------------------
         while (!drawQueue.empty()) {
             auto& [transform, drawable] = drawQueue.front();
             sf::RenderStates states = sf::RenderStates::Default;
