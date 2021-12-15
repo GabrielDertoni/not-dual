@@ -18,9 +18,10 @@
 #include "includes/time.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
+static std::chrono::duration deltaTime = std::chrono::milliseconds(17);
 
 std::binary_semaphore gameLoopStart(0);
-std::binary_semaphore gameLoopDone(1);
+std::binary_semaphore gameLoopDone(0);
 
 static bool done;
 static bool gameIsOver = false;
@@ -104,6 +105,7 @@ int main() {
     done = false;
 
     while (window.isOpen()) {
+        Timestamp frameStart = getNow();
         // Game loop starts
         gameLoopStart.release();
 
@@ -126,7 +128,7 @@ int main() {
         }
 
         // Push stuff to the draw queue
-        for (auto& [id, obj] : GameObject::getGameObjects()) {
+        for (auto [id, obj] : GameObject::getGameObjects()) {
             if (obj->hasComponent<Renderer>()) {
                 std::unique_ptr<Component> comp = obj->getComponent<Renderer>().clone();
                 std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
@@ -136,7 +138,11 @@ int main() {
 
         populateEventQueue(window);
 
-        std::this_thread::sleep_for(frameTimeBudget);
+        Timestamp frameEnd = getNow();
+        deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
+        if (deltaTime < frameTimeBudget) {
+            std::this_thread::sleep_for(frameTimeBudget - deltaTime);
+        }
     }
 
     gameLoopStart.release();
