@@ -34,11 +34,10 @@ static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT
 void mainMenuLoop();
 
 
-
 void gameLoop() {
     while (!done) {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
-        if (done) break;
+        if (done)break;
 
         for (auto& [id, obj] : GameObject::getGameObjects()) {
             obj->update();
@@ -64,10 +63,6 @@ void populateEventQueue(sf::RenderWindow& window) {
             window.close();
             done = true;
         } else if (event.type == sf::Event::KeyPressed) {
-            if (event.key.code == sf::Keyboard::Escape){
-                window.close();
-                mainMenuLoop();
-            }
             input::registerKeyPress(event.key);
         } else if (event.type == sf::Event::KeyReleased) {
             input::registerKeyRelease(event.key);
@@ -76,7 +71,7 @@ void populateEventQueue(sf::RenderWindow& window) {
 }
 
 
-void startGame(sf::RenderWindow& window, sf::RenderWindow& aboutSection, sf::RenderWindow& gameMenu){
+void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::RenderWindow& gameMenu){
 
     window.setKeyRepeatEnabled(false);
 
@@ -120,7 +115,6 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& aboutSection, sf::Ren
     done = false;
 
     while (window.isOpen()) {
-        //sf::Event aEvent;
         Timestamp frameStart = getNow();
         // Game loop starts
         gameLoopStart.release();
@@ -135,7 +129,7 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& aboutSection, sf::Ren
             window.draw(*drawable, states);
             drawQueue.pop_front();
         }
-        aboutSection.close();
+        howToPlay.close();
         gameMenu.close();
         window.display();
 
@@ -164,7 +158,6 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& aboutSection, sf::Ren
             std::this_thread::sleep_for(frameTimeBudget - deltaTime);
         }
     }
-
     gameLoopStart.release();
     gameThread.join();
 }
@@ -177,36 +170,36 @@ void switchWindow(int x, sf::RenderWindow &gameMenu){
     
     // Game window    
     sf::RenderWindow playGame(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
-    sf::RenderWindow aboutSection(sf::VideoMode(WIDTH, HEIGHT), "aboutSection", sf::Style::Default, settings);
+    sf::RenderWindow howToPlay(sf::VideoMode(WIDTH, HEIGHT), "How to play", sf::Style::Default, settings);
 
     switch (x)
     {
 
         // Switch to playGame
         case 0:
-            startGame(playGame, aboutSection, gameMenu);
+            startGame(playGame, howToPlay, gameMenu);
             break;
         
-        // Switch to aboutSection
+        // Switch to howToPlay
         case 1:
-            while (aboutSection.isOpen())
+            while (howToPlay.isOpen())
             {
                 sf::Event aEvent;
-                while (aboutSection.pollEvent(aEvent)){
+                while (howToPlay.pollEvent(aEvent)){
                     if (aEvent.type == sf::Event::Closed){
-                        aboutSection.close();
+                        howToPlay.close();
                     }
                     if (aEvent.type == sf::Event::KeyPressed){
                         if (aEvent.key.code == sf::Keyboard::Escape){
-                            aboutSection.close();
+                            howToPlay.close();
                         }
                     }   
 
                 }
 
                 playGame.close();
-                aboutSection.clear(sf::Color(49,21,58));
-                aboutSection.display();
+                howToPlay.clear(sf::Color(49,21,58));
+                howToPlay.display();
             }
             break;
 
@@ -265,7 +258,7 @@ void mainMenuLoop(){
                 // Select option
                 case sf::Keyboard::Return:
                 case sf::Keyboard::Space:
-                // Building other windows
+                    // Building other windows
                     switchWindow(mainMenu.InterfacePressed(), gameMenu);
                     break;
 
@@ -292,7 +285,6 @@ int main() {
 
     mainMenuLoop();
 
-    
 
     return 0;
 }

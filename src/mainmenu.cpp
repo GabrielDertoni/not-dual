@@ -7,7 +7,7 @@ MainMenu::MainMenu(float widht, float height){
     texture.loadFromFile("resources/bg_star.png");
     texture.setRepeated(true);
 
-    if (titleFont.loadFromFile("resources/fonts/vermin_vibes_1989.ttf")){
+    if (!titleFont.loadFromFile("resources/fonts/vermin_vibes_1989.ttf")){
         std::cout << "Font not found.";
     }
 
@@ -42,7 +42,7 @@ MainMenu::MainMenu(float widht, float height){
     menuOptions[1].setFillColor(sf::Color(49,21,58));
     menuOptions[1].setOutlineThickness(1.5f);
     menuOptions[1].setOutlineColor(sf::Color::White);
-    menuOptions[1].setString("About us");
+    menuOptions[1].setString("How to play?");
     menuOptions[1].setCharacterSize(70);
     menuOptions[1].setOrigin(menuOptions[1].getLocalBounds().left + menuOptions[1].getLocalBounds().width / 2.0f, 0);
     menuOptions[1].setPosition(WIDTH/2.0f, 230);

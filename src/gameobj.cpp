@@ -23,7 +23,7 @@ Transform operator* (const Transform& lhs, const Transform& rhs) {
     // FIXME(#8): This is probably wrong.
     // Transform multiplication is actually a matrix multiplication, but when
     // the components are sperated like this, I don't know how to do it.
-    // However, it should work forn now.
+    // However, it should work for now.
     //
     // One possibility is to do something like
     //
