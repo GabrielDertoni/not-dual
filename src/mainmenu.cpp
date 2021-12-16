@@ -1,7 +1,22 @@
 #include "includes/mainmenu.hpp"
 
+// int screenType → 1: mainMenu, 2: gameOverScreen
+MainMenu::MainMenu(float widht, float height, int screenType){
 
-MainMenu::MainMenu(float widht, float height){
+    std::string titleText, opt1, opt2;
+    // Making adjustments according to the screen we're building
+    if(screenType == 1){// Main Menu
+        titleText = "NOT-DUAL";
+        opt1 = "Let's play!";
+        opt2 = "How to play?";
+       
+    }
+    if(screenType == 2){// Game Over
+        titleText = "GAME OVER";
+        opt1 = "Play again!";
+        opt2 = "Back to menu";
+       
+    }  
     
     // Loading and applying the background texture to a sprite
     texture.loadFromFile("resources/bg_star.png");
@@ -11,13 +26,10 @@ MainMenu::MainMenu(float widht, float height){
         std::cout << "Font not found.";
     }
 
-    // Title
-    //windowTitle = textFormat("vermin_vibes_1989.ttf", "NOTDUAL", 0.0f, 90, WIDTH/2.0f, 0.0f);
-    
     //Title
     windowTitle.setFont(titleFont);
     windowTitle.setFillColor(sf::Color::White);
-    windowTitle.setString("NOTDUAL");
+    windowTitle.setString(titleText);
     windowTitle.setCharacterSize(90);
     windowTitle.setOrigin(windowTitle.getLocalBounds().left + windowTitle.getLocalBounds().width / 2.0f, 0);
     windowTitle.setPosition(WIDTH/2.0f, 50);
@@ -26,12 +38,13 @@ MainMenu::MainMenu(float widht, float height){
         std::cout << "Font not found.";
     }
 
+
     //Main Button
     menuOptions[0].setFont(font);
     menuOptions[0].setFillColor(sf::Color::White);
     menuOptions[0].setOutlineThickness(1.5f);
     menuOptions[0].setOutlineColor(sf::Color::White);
-    menuOptions[0].setString("Let's play!");
+    menuOptions[0].setString(opt1);        
     menuOptions[0].setCharacterSize(70);
     menuOptions[0].setOrigin(menuOptions[0].getLocalBounds().left + menuOptions[0].getLocalBounds().width / 2.0f, 0);
     menuOptions[0].setPosition(WIDTH/2.0f, 180);
@@ -42,10 +55,11 @@ MainMenu::MainMenu(float widht, float height){
     menuOptions[1].setFillColor(sf::Color(49,21,58));
     menuOptions[1].setOutlineThickness(1.5f);
     menuOptions[1].setOutlineColor(sf::Color::White);
-    menuOptions[1].setString("How to play?");
+    menuOptions[1].setString(opt2);
     menuOptions[1].setCharacterSize(70);
     menuOptions[1].setOrigin(menuOptions[1].getLocalBounds().left + menuOptions[1].getLocalBounds().width / 2.0f, 0);
     menuOptions[1].setPosition(WIDTH/2.0f, 230);
+
 
     //Quit game
     menuOptions[2].setFont(font);
@@ -65,10 +79,10 @@ MainMenu::MainMenu(float widht, float height){
     optionChosen.setOutlineColor(sf::Color::White);
     optionChosen.setCharacterSize(70);
     optionChosen.setOrigin(optionChosen.getLocalBounds().left + optionChosen.getLocalBounds().width / 2.0f, 0);
-    optionChosen.setPosition(180, menuOptions[0].getPosition().y);
+    optionChosen.setPosition(160, menuOptions[0].getPosition().y);
 
 
-    interfaceSelected = 0;    
+    interfaceSelected = 0;  
 }
 
 MainMenu::~MainMenu(){
@@ -111,7 +125,7 @@ void MainMenu::draw(sf::RenderWindow& window){
 }*/
 
 //MoveUp
-void MainMenu::MoveUp(){
+void MainMenu::MoveUp(int max){
 
     if (interfaceSelected - 1 >= 0) {
         menuOptions[interfaceSelected].setFillColor(sf::Color(49,21,58));
@@ -120,10 +134,10 @@ void MainMenu::MoveUp(){
 
         interfaceSelected--;
         if (interfaceSelected == -1) {
-            interfaceSelected = MAX_NUM_OPTIONS;
+            interfaceSelected = max;
         }
         
-        optionChosen.setPosition(180, menuOptions[interfaceSelected].getPosition().y);
+        optionChosen.setPosition(160, menuOptions[interfaceSelected].getPosition().y);
         menuOptions[interfaceSelected].setFillColor(sf::Color::White);
         menuOptions[interfaceSelected].setOutlineThickness(1.5f);
 
@@ -131,20 +145,20 @@ void MainMenu::MoveUp(){
 }
 
 //MoveDown
-void MainMenu::MoveDown(){
+void MainMenu::MoveDown(int max){
 
-    if (interfaceSelected + 1 <= MAX_NUM_OPTIONS) {
+    if (interfaceSelected + 1 <= max) {
         menuOptions[interfaceSelected].setFillColor(sf::Color(49,21,58));
         menuOptions[interfaceSelected].setOutlineColor(sf::Color::White);
         menuOptions[interfaceSelected].setOutlineThickness(1.5f);
 
 
         interfaceSelected++;
-        if (interfaceSelected == MAX_NUM_OPTIONS) {
+        if (interfaceSelected == max) {
             interfaceSelected = 0;
         }
 
-                optionChosen.setPosition(180, menuOptions[interfaceSelected].getPosition().y);
+                optionChosen.setPosition(160, menuOptions[interfaceSelected].getPosition().y);
         menuOptions[interfaceSelected].setFillColor(sf::Color::White);
         menuOptions[interfaceSelected].setOutlineThickness(1.5f);
         

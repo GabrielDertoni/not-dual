@@ -31,8 +31,6 @@ static std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> drawQueue
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
 
-void mainMenuLoop();
-
 
 void gameLoop() {
     while (!done) {
@@ -49,7 +47,6 @@ void gameLoop() {
 
         if (gameIsOver) {
             // Game ends, return to menu (or create a 'Game Over' window)
-            //mainMenuLoop();
         }
         gameLoopDone.release();
     }
@@ -172,6 +169,13 @@ void switchWindow(int x, sf::RenderWindow &gameMenu){
     sf::RenderWindow playGame(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
     sf::RenderWindow howToPlay(sf::VideoMode(WIDTH, HEIGHT), "How to play", sf::Style::Default, settings);
 
+
+    // How to play UI objects
+    sf::Texture howToPlayTexture;
+    howToPlayTexture.loadFromFile("resources/howtoplay.png");
+    howToPlayTexture.setRepeated(true);
+    sf::Sprite howToPlaySprite(howToPlayTexture);
+
     switch (x)
     {
 
@@ -199,6 +203,7 @@ void switchWindow(int x, sf::RenderWindow &gameMenu){
 
                 playGame.close();
                 howToPlay.clear(sf::Color(49,21,58));
+                howToPlay.draw(howToPlaySprite);
                 howToPlay.display();
             }
             break;
@@ -216,13 +221,15 @@ void switchWindow(int x, sf::RenderWindow &gameMenu){
 }
 
 
-void mainMenuLoop(){
+
+int main() {
+
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
-    // Building the Main window
+    // Building the Main Menu window
     sf::RenderWindow gameMenu(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
-    MainMenu mainMenu(gameMenu.getSize().x, gameMenu.getSize().y);
+    MainMenu mainMenu(gameMenu.getSize().x, gameMenu.getSize().y,1);
 
     // Setting the window icon
     sf::Image icon;
@@ -246,13 +253,13 @@ void mainMenuLoop(){
                 // Move Up
                 case sf::Keyboard::Up:
                 case sf::Keyboard::W:
-                    mainMenu.MoveUp();
+                    mainMenu.MoveUp(4);
                     break;
                 
                 // Move Down
                 case sf::Keyboard::Down:
                 case sf::Keyboard::S:
-                    mainMenu.MoveDown();
+                    mainMenu.MoveDown(4);
                     break;
 
                 // Select option
@@ -273,17 +280,6 @@ void mainMenuLoop(){
         mainMenu.draw(gameMenu);
         gameMenu.display();
     }
-    
-
-}
-
-
-int main() {
-
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
-
-    mainMenuLoop();
 
 
     return 0;

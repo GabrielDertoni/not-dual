@@ -19,14 +19,14 @@
 
 class MainMenu{
 public:
-    MainMenu(float width, float height);
+    MainMenu(float width, float height, int screenType);
 
     void draw(sf::RenderWindow& window);
     
     //sf::Text textFormat(std::String fontName, std::String s, float outline, int characterSize, float posX, float posY);
     
-    void MoveUp();
-    void MoveDown();
+    void MoveUp(int max);
+    void MoveDown(int max);
 
     int InterfacePressed() {
         return interfaceSelected;
