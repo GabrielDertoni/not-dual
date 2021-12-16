@@ -5,6 +5,8 @@
 #include "includes/particles.hpp"
 #include "includes/rigidbody.hpp"
 #include "includes/renderer.hpp"
+#include "includes/settings.hpp"
+#include "includes/spaceship.hpp"
 #include "includes/utils.hpp"
 
 ParticleEmitter::ParticleEmitter(int numEmitAtOnce, int emitInterval,
@@ -40,7 +42,7 @@ void ParticleEmitter::update(GameObject& gameObject) {
             );
             GameObjectBuilder(transform)
                 .addComponent<Particle>(sf::Color::Red, 500, 0.01)
-                .addComponent<RectangleRenderer>(sf::Color::Red, sf::Vector2f(5, 5))
+                .addComponent<SpriteRenderer>(P_PATH)
                 .addComponentFrom([&] {
                     RigidBody rb(1.0f);
                     float impulse = avgParticleImpulse * (0.2 + (float)(rand() % 100) / 100.0);
@@ -79,8 +81,4 @@ void Particle::update(GameObject& gameObject) {
     }
 
     lerp = lerp + vanishRate > 1 ? 1 : lerp + vanishRate;
-    sf::Color curr = colorLerp(color, sf::Color(255, 255, 255, 0), lerp);
-
-    RectangleRenderer& renderer = gameObject.getComponent<RectangleRenderer>();
-    renderer.setColor(curr);
 }

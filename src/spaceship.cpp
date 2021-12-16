@@ -7,14 +7,12 @@
 
 #include "includes/spaceship.hpp"
 
-SpaceshipRenderer::SpaceshipRenderer(std::string texturePath) {
-    texture.loadFromFile(texturePath);
-    shape.setTexture(texture);
-}
+SpaceshipRenderer::SpaceshipRenderer(std::string texturePath) :
+    shape(texturePath)
+{}
 
 SpaceshipRenderer::SpaceshipRenderer(const SpaceshipRenderer& other) :
-    texture(other.texture),
-    shape(other.texture)
+    shape(other.shape)
 {}
 
 void SpaceshipRenderer::draw(sf::RenderTarget& target, sf::RenderStates states) const {

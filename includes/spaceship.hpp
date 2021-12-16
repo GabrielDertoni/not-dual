@@ -19,11 +19,8 @@ public:
     SpaceshipRenderer(std::string texturePath);
     SpaceshipRenderer(const SpaceshipRenderer& other);
 
-    sf::Color getColor() const;
-
 private:
-    sf::Texture texture;
-    sf::Sprite  shape;
+    SpriteRenderer shape;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };

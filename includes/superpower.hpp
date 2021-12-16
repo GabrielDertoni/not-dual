@@ -9,7 +9,7 @@
 #include "includes/renderer.hpp"
 #include "includes/time.hpp"
 
-#define POWER_SIZE 10
+#define POWER_SIZE 16
 #define SUPER_POWER_INTERVAL      (std::chrono::seconds(7))
 #define SUPER_POWER_INTERVAL_LIFE (std::chrono::seconds(5))
 

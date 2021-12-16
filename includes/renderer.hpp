@@ -38,12 +38,16 @@ class SpriteRenderer: public Renderer {
 public:
     DERIVE_CLONE_COMPONENT
 
-    SpriteRenderer(sf::Texture texture);
+    SpriteRenderer(std::string texturePath);
+    SpriteRenderer(const SpriteRenderer& other);
+
+    sf::Texture getTexture() const;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
 private:
-    sf::Sprite sprite;
+    sf::Texture texture;
+    sf::Sprite  sprite;
 };
 
 #endif

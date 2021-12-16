@@ -67,7 +67,6 @@ void Player::update(GameObject& gameObject) {
 
     if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
         float size = hasPower ? SUPER_BULLET_SIZE : BULLET_SIZE;
-
         std::string texturePath = hasPower ? SB_PATH : NB_PATH;
 
         GameObjectBuilder(gameObject.transform)
@@ -81,7 +80,7 @@ void Player::update(GameObject& gameObject) {
                 return rb;
             })
             .addComponent<BoxCollider>(sf::Vector2f(size, size))
-            .addComponent<SpaceshipRenderer>(texturePath)
+            .addComponent<SpriteRenderer>(texturePath)
             .registerGameObject();
 
         lastShot = getNow();
