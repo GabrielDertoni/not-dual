@@ -1,12 +1,14 @@
 #include "includes/mainmenu.hpp"
 
+using namespace std;
+
 MainMenu::MainMenu(float widht, float height){
     // Loading and applying the background texture to a sprite
     texture.loadFromFile("resources/bg_star.png");
     texture.setRepeated(true);
 
-    if (!titleFont.loadFromFile("resources/fonts/vermin_vibes_1989.ttf")){
-        cout << "Font not found. :P";
+    if (titleFont.loadFromFile("resources/fonts/vermin_vibes_1989.ttf")){
+        cout << "Font not found.";
     }
 
     // Title

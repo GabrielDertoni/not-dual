@@ -11,7 +11,6 @@
 
 #include <SFML/Graphics.hpp>
 
-using namespace std;
 using namespace sf;
 
 #define MAX_NUM_OPTIONS 3
