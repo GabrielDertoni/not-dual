@@ -31,6 +31,7 @@ static std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> drawQueue
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
 
+void switchWindow(int x, sf::RenderWindow &gameMenu);
 
 void gameLoop() {
     while (!done) {
@@ -44,14 +45,29 @@ void gameLoop() {
         // Destruction MUST HAPPEN BEFORE instantiation.
         GameObject::destroyAllMarked();
         GameObject::instantiateAllMarked();
+        
+        bool player1Alive = false;
+        bool player2Alive = false;
+        
+        for (auto [id, obj] : GameObject::getGameObjects()) {
+            if(obj->getTag() == "Player1"){
+                player1Alive = true;
+            }
 
-        if (gameIsOver) {
-            // Game ends, return to menu (or create a 'Game Over' window)
+            if(obj->getTag() == "Player2"){
+                player2Alive = true;
+            }
         }
+
+        if (!player1Alive || !player2Alive) {
+            gameLoopDone.release();
+            gameIsOver = true;
+            return;
+        }
+
         gameLoopDone.release();
     }
 }
-
 
 void populateEventQueue(sf::RenderWindow& window) {
     sf::Event event;
@@ -67,6 +83,60 @@ void populateEventQueue(sf::RenderWindow& window) {
     }
 }
 
+
+// Builds gameOver screen
+void gameOver(){
+
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
+    sf::RenderWindow gameOverScreen(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
+    MainMenu mainMenu(gameOverScreen.getSize().x, gameOverScreen.getSize().y,2);
+
+    while (gameOverScreen.isOpen()){
+        sf::Event event;
+        while (gameOverScreen.pollEvent(event))
+        {
+            // Close the window
+            if (event.type == sf::Event::Closed){
+                gameOverScreen.close();
+            }
+
+            // Check for key events
+            if (event.type == sf::Event::KeyReleased){
+                // Treat all valid key events for GUI interactions
+                switch (event.key.code){
+                // Move Up
+                case sf::Keyboard::Up:
+                case sf::Keyboard::W:
+                    mainMenu.MoveUp(3);
+                    break;
+                
+                // Move Down
+                case sf::Keyboard::Down:
+                case sf::Keyboard::S:
+                    mainMenu.MoveDown(3);
+                    break;
+
+                // Select option
+                case sf::Keyboard::Return:
+                case sf::Keyboard::Space:
+                    // Building other windows
+                    switchWindow(mainMenu.InterfacePressed(), gameOverScreen);
+                    break;
+
+                default:
+                    break;
+                }
+              
+            }
+        }
+
+        gameOverScreen.clear(sf::Color(49,21,58));
+        mainMenu.draw(gameOverScreen);
+        gameOverScreen.display();
+    }
+}
 
 void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::RenderWindow& gameMenu){
 
@@ -133,7 +203,7 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::Render
         // Game loop ends
         gameLoopDone.acquire();
 
-        if (done) {
+        if (done || gameIsOver) {
             window.close();
             break;
         }
@@ -157,6 +227,11 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::Render
     }
     gameLoopStart.release();
     gameThread.join();
+    
+    if(gameIsOver){
+        gameOver();
+    }
+    
 }
 
 
@@ -253,13 +328,13 @@ int main() {
                 // Move Up
                 case sf::Keyboard::Up:
                 case sf::Keyboard::W:
-                    mainMenu.MoveUp(4);
+                    mainMenu.MoveUp(3);
                     break;
                 
                 // Move Down
                 case sf::Keyboard::Down:
                 case sf::Keyboard::S:
-                    mainMenu.MoveDown(4);
+                    mainMenu.MoveDown(3);
                     break;
 
                 // Select option

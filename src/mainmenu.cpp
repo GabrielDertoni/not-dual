@@ -71,6 +71,7 @@ MainMenu::MainMenu(float widht, float height, int screenType){
     menuOptions[2].setOrigin(menuOptions[2].getLocalBounds().left + menuOptions[2].getLocalBounds().width / 2.0f, 0);
     menuOptions[2].setPosition(WIDTH/2.0f, 280);
 
+
     // Setting the indicator
     optionChosen.setFont(font);
     optionChosen.setFillColor(sf::Color::White);
