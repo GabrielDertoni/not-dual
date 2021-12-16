@@ -69,8 +69,6 @@ void Player::update(GameObject& gameObject) {
         float size = hasPower ? SUPER_BULLET_SIZE : BULLET_SIZE;
 
         std::string texturePath = hasPower ? SB_PATH : NB_PATH;
-        sf::Texture bulletTexture;
-        bulletTexture.loadFromFile(texturePath);
 
         GameObjectBuilder(gameObject.transform)
             .withTag(std::string(gameObject.getTag()))
@@ -83,7 +81,7 @@ void Player::update(GameObject& gameObject) {
                 return rb;
             })
             .addComponent<BoxCollider>(sf::Vector2f(size, size))
-            .addComponent<SpriteRenderer>(bulletTexture)
+            .addComponent<SpaceshipRenderer>(texturePath)
             .registerGameObject();
 
         lastShot = getNow();

@@ -67,7 +67,7 @@ void populateEventQueue(sf::RenderWindow& window) {
 int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
     window.setKeyRepeatEnabled(false);
 
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
