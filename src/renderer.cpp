@@ -1,6 +1,5 @@
 #include "includes/renderer.hpp"
 
-
 RectangleRenderer::RectangleRenderer(sf::Color color, sf::Vector2f size) :
     rect(size)
 {
@@ -21,4 +20,12 @@ void RectangleRenderer::draw(sf::RenderTarget& target, sf::RenderStates states) 
 
 void RectangleRenderer::setColor(sf::Color color) {
     rect.setFillColor(color);
+}
+
+SpriteRenderer::SpriteRenderer(sf::Texture texture) :
+    sprite(texture)
+{}
+
+void SpriteRenderer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    target.draw(sprite, states);
 }

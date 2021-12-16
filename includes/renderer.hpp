@@ -6,6 +6,8 @@
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 
@@ -32,5 +34,16 @@ private:
 };
 
 // TODO(#9): SpriteRenderer
+class SpriteRenderer: public Renderer {
+public:
+    DERIVE_CLONE_COMPONENT
+
+    SpriteRenderer(sf::Texture texture);
+
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+
+private:
+    sf::Sprite sprite;
+};
 
 #endif

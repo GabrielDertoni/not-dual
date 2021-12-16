@@ -76,7 +76,7 @@ int main() {
     GameObjectBuilder(Transform(leftPlayerStartPos, 0))
         .withTag("Player1")
         .addComponent<Player>(&wasdController, Player::LEFT)
-        .addComponent<SpaceshipRenderer>(sf::Color::Green, PLAYER_SIZE)
+        .addComponent<SpaceshipRenderer>(LS_PATH)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
@@ -84,7 +84,7 @@ int main() {
     GameObjectBuilder(Transform(rightPlayerStartPos, 0))
         .withTag("Player2")
         .addComponent<Player>(&arrowsController, Player::RIGHT)
-        .addComponent<SpaceshipRenderer>(sf::Color::Blue, PLAYER_SIZE)
+        .addComponent<SpaceshipRenderer>(RS_PATH)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();

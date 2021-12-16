@@ -67,6 +67,11 @@ void Player::update(GameObject& gameObject) {
 
     if (inputs[Controller::Shoot] && ellapsed > SHOOT_INTERVAL) {
         float size = hasPower ? SUPER_BULLET_SIZE : BULLET_SIZE;
+
+        std::string texturePath = hasPower ? SB_PATH : NB_PATH;
+        sf::Texture bulletTexture;
+        bulletTexture.loadFromFile(texturePath);
+
         GameObjectBuilder(gameObject.transform)
             .withTag(std::string(gameObject.getTag()))
             .addComponent<Bullet>(hasPower)
@@ -78,7 +83,7 @@ void Player::update(GameObject& gameObject) {
                 return rb;
             })
             .addComponent<BoxCollider>(sf::Vector2f(size, size))
-            .addComponent<RectangleRenderer>(sf::Vector2f(size, size))
+            .addComponent<SpriteRenderer>(bulletTexture)
             .registerGameObject();
 
         lastShot = getNow();
@@ -105,14 +110,14 @@ void Player::update(GameObject& gameObject) {
     std::array<sf::Vector2f, 4> normals;
 
     if (side == LEFT) {
-       normals = {
+        normals = {
             collider.gLeftTop.x <= 0             ? sf::Vector2f( 1,  0) : zero,
             collider.gLeftTop.y <= 0             ? sf::Vector2f( 0,  1) : zero,
             collider.gRightBottom.x >= WIDTH / 2 ? sf::Vector2f(-1,  0) : zero,
             collider.gRightBottom.y >= HEIGHT    ? sf::Vector2f( 0, -1) : zero,
         };
     } else {
-       normals = {
+        normals = {
             collider.gLeftTop.x <= WIDTH / 2  ? sf::Vector2f( 1,  0) : zero,
             collider.gLeftTop.y <= 0          ? sf::Vector2f( 0,  1) : zero,
             collider.gRightBottom.x >= WIDTH  ? sf::Vector2f(-1,  0) : zero,
@@ -148,7 +153,7 @@ void Player::update(GameObject& gameObject) {
             && collider.intersects(obj->getComponent<BoxCollider>());
     };
 
-    SpaceshipRenderer& renderer = gameObject.getComponent<SpaceshipRenderer>();
+    // SpaceshipRenderer& renderer = gameObject.getComponent<SpaceshipRenderer>();
 
     for (auto& bullet : GameObject::getGameObjects()
                       | views::values
@@ -158,21 +163,23 @@ void Player::update(GameObject& gameObject) {
         life -= behaviour.isSuper ? SUPER_BULLET_DAMAGE : BULLET_DAMAGE;
         bullet->destroy();
 
-        for (int i = 0; i < BLOOD_N_PARTICLES; i++) {
-            float ang = 2 * M_PI * (float)(rand() % 100) / 100;
-            sf::Vector2f dir(cos(ang), sin(ang));
-            GameObjectBuilder(gameObject.transform)
-                .addComponent<Particle>(renderer.getColor(), BLOOD_PARTICLE_TTL, 0.01)
-                .addComponentFrom([&] {
-                    RigidBody rb(1.0f);
-                    float impulse = BLOOD_PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
-                    rb.applyForce(dir * impulse);
-                    rb.setGravity(sf::Vector2f(0, 0.5f));
-                    return rb;
-                })
-                .addComponent<RectangleRenderer>(sf::Vector2f(BLOOD_PARTICLE_SIZE, BLOOD_PARTICLE_SIZE))
-                .registerGameObject();
-        }
+        // renderer.changeToDamage();
+
+        // for (int i = 0; i < BLOOD_N_PARTICLES; i++) {
+        //     float ang = 2 * M_PI * (float)(rand() % 100) / 100;
+        //     sf::Vector2f dir(cos(ang), sin(ang));
+        //     GameObjectBuilder(gameObject.transform)
+        //         .addComponent<Particle>(renderer.getColor(), BLOOD_PARTICLE_TTL, 0.01)
+        //         .addComponentFrom([&] {
+        //             RigidBody rb(1.0f);
+        //             float impulse = BLOOD_PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
+        //             rb.applyForce(dir * impulse);
+        //             rb.setGravity(sf::Vector2f(0, 0.5f));
+        //             return rb;
+        //         })
+        //         .addComponent<RectangleRenderer>(sf::Vector2f(BLOOD_PARTICLE_SIZE, BLOOD_PARTICLE_SIZE))
+        //         .registerGameObject();
+        // }
     }
 
     auto playerGetsPower = [&](std::shared_ptr<GameObject>& obj) {

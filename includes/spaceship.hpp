@@ -4,6 +4,8 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Window/Event.hpp>
 
@@ -14,14 +16,14 @@ class SpaceshipRenderer: public Renderer {
 public:
     DERIVE_CLONE_COMPONENT
 
-    SpaceshipRenderer(sf::Color color, float size);
+    SpaceshipRenderer(std::string texturePath);
     SpaceshipRenderer(const SpaceshipRenderer& other);
 
     sf::Color getColor() const;
 
 private:
-    float size;
-    sf::RectangleShape shape;
+    sf::Texture texture;
+    sf::Sprite  shape;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
