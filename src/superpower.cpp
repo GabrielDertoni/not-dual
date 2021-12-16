@@ -9,6 +9,7 @@
 #include "includes/gameobj.hpp"
 #include "includes/settings.hpp"
 #include "includes/particles.hpp"
+#include "includes/spaceship.hpp"
 
 void SuperPower::initialize(GameObject& gameObject) {
     created = std::make_optional(getNow());
@@ -34,7 +35,7 @@ void PowerSpawner::update(GameObject& gameObject) {
             .addComponent<SuperPower>()
             .addComponent<ParticleEmitter>(10, 100, 2.0f)
             .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
-            .addComponent<RectangleRenderer>(sf::Color::Red, sf::Vector2f(POWER_SIZE, POWER_SIZE))
+            .addComponent<SpriteRenderer>(SB_PATH)
             .registerGameObject();
 
         lastPower = std::make_optional(getNow());

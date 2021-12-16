@@ -16,7 +16,7 @@
 #include "includes/time.hpp"
 #include "includes/utils.hpp"
 
-#define PLAYER_SIZE   20
+#define PLAYER_SIZE   32
 // How much force is applied when the player presses a button.
 #define IMPULSE       0.2f
 

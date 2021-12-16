@@ -67,7 +67,7 @@ void populateEventQueue(sf::RenderWindow& window) {
 int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
     window.setKeyRepeatEnabled(false);
 
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
@@ -76,7 +76,7 @@ int main() {
     GameObjectBuilder(Transform(leftPlayerStartPos, 0))
         .withTag("Player1")
         .addComponent<Player>(&wasdController, Player::LEFT)
-        .addComponent<SpaceshipRenderer>(sf::Color::Green, PLAYER_SIZE)
+        .addComponent<SpaceshipRenderer>(LS_PATH)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
@@ -84,7 +84,7 @@ int main() {
     GameObjectBuilder(Transform(rightPlayerStartPos, 0))
         .withTag("Player2")
         .addComponent<Player>(&arrowsController, Player::RIGHT)
-        .addComponent<SpaceshipRenderer>(sf::Color::Blue, PLAYER_SIZE)
+        .addComponent<SpaceshipRenderer>(RS_PATH)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
@@ -100,6 +100,11 @@ int main() {
         .addComponent<PowerSpawner>()
         .registerGameObject();
 
+    sf::Texture bg;
+    bg.loadFromFile(BG_PATH);
+    sf::Sprite bgSprite(bg);
+
+
     std::thread gameThread(gameLoop);
 
     done = false;
@@ -110,6 +115,8 @@ int main() {
         gameLoopStart.release();
 
         window.clear();
+
+        window.draw(bgSprite);
         while (!drawQueue.empty()) {
             auto& [transform, drawable] = drawQueue.front();
             sf::RenderStates states = sf::RenderStates::Default;

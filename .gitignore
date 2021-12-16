@@ -1,4 +1,5 @@
 build/
+.history/
 not_dual
 compile_flags.txt
 .clangd
