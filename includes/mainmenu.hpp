@@ -8,22 +8,22 @@
 #include <chrono>
 #include <deque>
 #include <list>
+#include <string>
 
 #include <SFML/Graphics.hpp>
 
-using namespace sf;
+#include "includes/settings.hpp"
+
 
 #define MAX_NUM_OPTIONS 3
-#define WIDTH  640
-#define HEIGHT 360
 
 class MainMenu{
 public:
     MainMenu(float width, float height);
 
-    void draw(RenderWindow& window);
+    void draw(sf::RenderWindow& window);
     
-    Text textFormat(String fontName, String s, float outline, int characterSize, float posX, float posY);
+    //sf::Text textFormat(std::String fontName, std::String s, float outline, int characterSize, float posX, float posY);
     
     void MoveUp();
     void MoveDown();
@@ -35,13 +35,13 @@ public:
     ~MainMenu();
 
 private:
-    Text optionChosen;
+    sf::Text optionChosen;
     sf::Texture texture;
     int interfaceSelected;
-    Font font;
-    Font titleFont;
-    Text windowTitle;
-    Text menuOptions[MAX_NUM_OPTIONS];
+    sf::Font font;
+    sf::Font titleFont;
+    sf::Text windowTitle;
+    sf::Text menuOptions[MAX_NUM_OPTIONS];
 };
 
 #endif

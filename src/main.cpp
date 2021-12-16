@@ -16,6 +16,7 @@
 #include "includes/settings.hpp"
 #include "includes/superpower.hpp"
 #include "includes/time.hpp"
+#include "includes/mainmenu.hpp"
 
 const std::chrono::duration frameTimeBudget = std::chrono::milliseconds(17);
 static std::chrono::duration deltaTime = std::chrono::milliseconds(17);
@@ -29,6 +30,10 @@ static std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> drawQueue
 
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
+
+void mainMenuLoop();
+
+
 
 void gameLoop() {
     while (!done) {
@@ -44,11 +49,13 @@ void gameLoop() {
         GameObject::instantiateAllMarked();
 
         if (gameIsOver) {
-
+            // Game ends, return to menu (or create a 'Game Over' window)
+            //mainMenuLoop();
         }
         gameLoopDone.release();
     }
 }
+
 
 void populateEventQueue(sf::RenderWindow& window) {
     sf::Event event;
@@ -57,6 +64,10 @@ void populateEventQueue(sf::RenderWindow& window) {
             window.close();
             done = true;
         } else if (event.type == sf::Event::KeyPressed) {
+            if (event.key.code == sf::Keyboard::Escape){
+                window.close();
+                mainMenuLoop();
+            }
             input::registerKeyPress(event.key);
         } else if (event.type == sf::Event::KeyReleased) {
             input::registerKeyRelease(event.key);
@@ -64,10 +75,9 @@ void populateEventQueue(sf::RenderWindow& window) {
     }
 }
 
-int main() {
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
+
+void startGame(sf::RenderWindow& window, sf::RenderWindow& aboutSection, sf::RenderWindow& gameMenu){
+
     window.setKeyRepeatEnabled(false);
 
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
@@ -110,6 +120,7 @@ int main() {
     done = false;
 
     while (window.isOpen()) {
+        //sf::Event aEvent;
         Timestamp frameStart = getNow();
         // Game loop starts
         gameLoopStart.release();
@@ -124,6 +135,8 @@ int main() {
             window.draw(*drawable, states);
             drawQueue.pop_front();
         }
+        aboutSection.close();
+        gameMenu.close();
         window.display();
 
         // Game loop ends
@@ -154,6 +167,132 @@ int main() {
 
     gameLoopStart.release();
     gameThread.join();
+}
+
+
+void switchWindow(int x, sf::RenderWindow &gameMenu){
+
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+    
+    // Game window    
+    sf::RenderWindow playGame(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
+    sf::RenderWindow aboutSection(sf::VideoMode(WIDTH, HEIGHT), "aboutSection", sf::Style::Default, settings);
+
+    switch (x)
+    {
+
+        // Switch to playGame
+        case 0:
+            startGame(playGame, aboutSection, gameMenu);
+            break;
+        
+        // Switch to aboutSection
+        case 1:
+            while (aboutSection.isOpen())
+            {
+                sf::Event aEvent;
+                while (aboutSection.pollEvent(aEvent)){
+                    if (aEvent.type == sf::Event::Closed){
+                        aboutSection.close();
+                    }
+                    if (aEvent.type == sf::Event::KeyPressed){
+                        if (aEvent.key.code == sf::Keyboard::Escape){
+                            aboutSection.close();
+                        }
+                    }   
+
+                }
+
+                playGame.close();
+                aboutSection.clear(sf::Color(49,21,58));
+                aboutSection.display();
+            }
+            break;
+
+
+        // Quit game
+        case 2:
+            gameMenu.close();
+            break;
+
+
+    default:
+        break;
+    }
+}
+
+
+void mainMenuLoop(){
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
+    // Building the Main window
+    sf::RenderWindow gameMenu(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
+    MainMenu mainMenu(gameMenu.getSize().x, gameMenu.getSize().y);
+
+    // Setting the window icon
+    sf::Image icon;
+    icon.loadFromFile("resources/icon.png");
+    gameMenu.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+
+
+    while (gameMenu.isOpen()){
+        sf::Event event;
+        while (gameMenu.pollEvent(event))
+        {
+            // Close the window
+            if (event.type == sf::Event::Closed){
+                gameMenu.close();
+            }
+
+            // Check for key events
+            if (event.type == sf::Event::KeyReleased){
+                // Treat all valid key events for GUI interactions
+                switch (event.key.code){
+                // Move Up
+                case sf::Keyboard::Up:
+                case sf::Keyboard::W:
+                    mainMenu.MoveUp();
+                    break;
+                
+                // Move Down
+                case sf::Keyboard::Down:
+                case sf::Keyboard::S:
+                    mainMenu.MoveDown();
+                    break;
+
+                // Select option
+                case sf::Keyboard::Return:
+                case sf::Keyboard::Space:
+                // Building other windows
+                    switchWindow(mainMenu.InterfacePressed(), gameMenu);
+                    break;
+
+                default:
+                    break;
+                }
+              
+            }
+        }
+
+        gameMenu.clear(sf::Color(49,21,58));
+        mainMenu.draw(gameMenu);
+        gameMenu.display();
+    }
+    
+
+}
+
+
+int main() {
+
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
+    mainMenuLoop();
+
+    
 
     return 0;
 }
