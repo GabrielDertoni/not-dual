@@ -6,7 +6,6 @@
 #include "includes/rigidbody.hpp"
 #include "includes/renderer.hpp"
 #include "includes/settings.hpp"
-#include "includes/spaceship.hpp"
 #include "includes/utils.hpp"
 
 ParticleEmitter::ParticleEmitter(int numEmitAtOnce, int emitInterval,

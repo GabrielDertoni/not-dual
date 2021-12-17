@@ -22,18 +22,26 @@ void RectangleRenderer::setColor(sf::Color color) {
     rect.setFillColor(color);
 }
 
-SpriteRenderer::SpriteRenderer(std::string texturePath) {
+SpriteRenderer::SpriteRenderer(std::string texturePath) :
+    SpriteRenderer(texturePath, sf::Transform())
+{}
+
+SpriteRenderer::SpriteRenderer(std::string texturePath, sf::Transform localTransform) :
+    localTransform(localTransform)
+{
     texture = new sf::Texture();
     texture->loadFromFile(texturePath);
     sprite.setTexture(*texture);
 }
 
 SpriteRenderer::SpriteRenderer(const SpriteRenderer& other) :
+    localTransform(other.localTransform),
     texture(other.texture)
 {
     sprite.setTexture(*texture);
 }
 
 void SpriteRenderer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    states.transform *= localTransform;
     target.draw(sprite, states);
 }

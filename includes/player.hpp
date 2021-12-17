@@ -11,7 +11,6 @@
 #include <SFML/System/Clock.hpp>
 
 #include "includes/collider.hpp"
-#include "includes/spaceship.hpp"
 #include "includes/gameobj.hpp"
 #include "includes/time.hpp"
 #include "includes/utils.hpp"

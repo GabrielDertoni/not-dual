@@ -9,7 +9,6 @@
 #include "includes/gameobj.hpp"
 #include "includes/settings.hpp"
 #include "includes/particles.hpp"
-#include "includes/spaceship.hpp"
 
 void SuperPower::initialize(GameObject& gameObject) {
     created = std::make_optional(getNow());

@@ -38,6 +38,7 @@ class SpriteRenderer: public Renderer {
 public:
     DERIVE_CLONE_COMPONENT
 
+    SpriteRenderer(std::string texturePath, sf::Transform localTransform);
     SpriteRenderer(std::string texturePath);
     SpriteRenderer(const SpriteRenderer& other);
 
@@ -46,6 +47,7 @@ public:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
 private:
+    sf::Transform localTransform;
     sf::Texture* texture;
     sf::Sprite  sprite;
 };
