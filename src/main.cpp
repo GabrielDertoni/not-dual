@@ -94,10 +94,16 @@ void playGame(){
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
     divisionLine.setPosition(WIDTH / 2, 0);
 
+    sf::Transform p1SpriteOffset;
+    p1SpriteOffset.translate(-15, -20);
+
+    sf::Transform p2SpriteOffset;
+    p2SpriteOffset.translate(-20, -20);
+
     GameObjectBuilder(Transform(leftPlayerStartPos, 0))
         .withTag("Player1")
         .addComponent<Player>(&wasdController, Player::LEFT)
-        .addComponent<SpaceshipRenderer>(LS_PATH)
+        .addComponent<SpriteRenderer>(LS_PATH, p1SpriteOffset)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
@@ -105,7 +111,7 @@ void playGame(){
     GameObjectBuilder(Transform(rightPlayerStartPos, 0))
         .withTag("Player2")
         .addComponent<Player>(&arrowsController, Player::RIGHT)
-        .addComponent<SpaceshipRenderer>(RS_PATH)
+        .addComponent<SpriteRenderer>(RS_PATH, p2SpriteOffset)
         .addComponent<BoxCollider>(-playerSize, playerSize)
         .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
@@ -114,12 +120,12 @@ void playGame(){
         .addComponent<RectangleRenderer>(sf::Vector2f(2, HEIGHT))
         .registerGameObject();
 
-    // GameObjectBuilder(Transform(sf::Vector2f(250, HEIGHT / 2), 0))
-    //     .addComponent<PowerSpawner>()
-    //     .registerGameObject();
-    // GameObjectBuilder(Transform(sf::Vector2f(450, HEIGHT / 2), 0))
-    //     .addComponent<PowerSpawner>()
-    //     .registerGameObject();
+    GameObjectBuilder(Transform(sf::Vector2f(250, HEIGHT / 2), 0))
+        .addComponent<PowerSpawner>()
+        .registerGameObject();
+    GameObjectBuilder(Transform(sf::Vector2f(450, HEIGHT / 2), 0))
+        .addComponent<PowerSpawner>()
+        .registerGameObject();
 
     sf::Texture bg;
     bg.loadFromFile(BG_PATH);
@@ -169,7 +175,7 @@ void playGame(){
         Timestamp frameEnd = getNow();
         deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
         if (deltaTime < frameTimeBudget) {
-            // std::this_thread::sleep_for(frameTimeBudget - deltaTime);
+            std::this_thread::sleep_for(frameTimeBudget - deltaTime);
         }
     }
     done = true;
