@@ -1,17 +1,16 @@
 #include "includes/mainmenu.hpp"
 
-// int screenType → 1: mainMenu, 2: gameOverScreen
-MainMenu::MainMenu(float widht, float height, int screenType){
+MainMenu::MainMenu(float widht, float height, bool showGameOverText){
 
     std::string titleText, opt1, opt2;
     // Making adjustments according to the screen we're building
-    if(screenType == 1){// Main Menu
+    if(!showGameOverText){// Main Menu
         titleText = "NOT-DUAL";
         opt1 = "Let's play!";
         opt2 = "How to play?";
 
     }
-    if(screenType == 2){// Game Over
+    else{// Game Over
         titleText = "GAME OVER";
         opt1 = "Play again!";
         opt2 = "Back to menu";

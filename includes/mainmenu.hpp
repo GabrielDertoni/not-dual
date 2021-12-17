@@ -19,7 +19,7 @@
 
 class MainMenu{
 public:
-    MainMenu(float width, float height, int screenType);
+    MainMenu(float width, float height, bool showGameOverText);
 
     void draw(sf::RenderWindow& window);
 
