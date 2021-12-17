@@ -7,6 +7,9 @@
 #define WIDTH  640
 #define HEIGHT 480
 
+#define WIDTH_F  640.0f
+#define HEIGHT_F 480.0f
+
 #define BG_PATH "./resources/bg_star.png"
 #define RS_PATH "./resources/rSpaceship.png"
 #define LS_PATH "./resources/lSpaceship.png"

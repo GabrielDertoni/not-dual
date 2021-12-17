@@ -28,13 +28,13 @@ static bool done;
 static bool gameIsOver = false;
 static std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> drawQueue;
 
-static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
-static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
+static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT_F / 2);
+static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT_F / 2);
 
 void menuScreen(bool showGameOverText);
 
 void gameLoop() {
-    
+
     gameIsOver = false;
 
     while (!done) {
@@ -95,7 +95,7 @@ void playGame(){
     window.setKeyRepeatEnabled(false);
 
     sf::RectangleShape divisionLine(sf::Vector2f(1, HEIGHT));
-    divisionLine.setPosition(WIDTH / 2, 0);
+    divisionLine.setPosition(WIDTH_F / 2, 0);
 
     sf::Transform p1SpriteOffset;
     p1SpriteOffset.translate(-15, -20);
@@ -119,14 +119,14 @@ void playGame(){
         .addComponent<RigidBody>(1.0f, 0.98)
         .registerGameObject();
 
-    GameObjectBuilder(Transform(sf::Vector2f(WIDTH/2 - 1, 0), 0))
+    GameObjectBuilder(Transform(sf::Vector2f(WIDTH_F/2 - 1, 0), 0))
         .addComponent<RectangleRenderer>(sf::Vector2f(2, HEIGHT))
         .registerGameObject();
 
-    GameObjectBuilder(Transform(sf::Vector2f(250, HEIGHT / 2), 0))
+    GameObjectBuilder(Transform(sf::Vector2f(250, HEIGHT_F / 2), 0))
         .addComponent<PowerSpawner>()
         .registerGameObject();
-    GameObjectBuilder(Transform(sf::Vector2f(450, HEIGHT / 2), 0))
+    GameObjectBuilder(Transform(sf::Vector2f(450, HEIGHT_F / 2), 0))
         .addComponent<PowerSpawner>()
         .registerGameObject();
 
