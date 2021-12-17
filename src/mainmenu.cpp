@@ -9,15 +9,15 @@ MainMenu::MainMenu(float widht, float height, int screenType){
         titleText = "NOT-DUAL";
         opt1 = "Let's play!";
         opt2 = "How to play?";
-       
+
     }
     if(screenType == 2){// Game Over
         titleText = "GAME OVER";
         opt1 = "Play again!";
         opt2 = "Back to menu";
-       
-    }  
-    
+
+    }
+
     // Loading and applying the background texture to a sprite
     texture.loadFromFile("resources/bg_star.png");
     texture.setRepeated(true);
@@ -44,7 +44,7 @@ MainMenu::MainMenu(float widht, float height, int screenType){
     menuOptions[0].setFillColor(sf::Color::White);
     menuOptions[0].setOutlineThickness(1.5f);
     menuOptions[0].setOutlineColor(sf::Color::White);
-    menuOptions[0].setString(opt1);        
+    menuOptions[0].setString(opt1);
     menuOptions[0].setCharacterSize(70);
     menuOptions[0].setOrigin(menuOptions[0].getLocalBounds().left + menuOptions[0].getLocalBounds().width / 2.0f, 0);
     menuOptions[0].setPosition(WIDTH/2.0f, 180);
@@ -83,10 +83,7 @@ MainMenu::MainMenu(float widht, float height, int screenType){
     optionChosen.setPosition(160, menuOptions[0].getPosition().y);
 
 
-    interfaceSelected = 0;  
-}
-
-MainMenu::~MainMenu(){
+    interfaceSelected = 0;
 }
 
 //Draw MainMenu
@@ -95,7 +92,7 @@ void MainMenu::draw(sf::RenderWindow& window){
     sf::Sprite bg(texture);
     bg.setColor(sf::Color(255, 255, 255));
     window.draw(bg);
-    
+
     for (int i = 0; i < MAX_NUM_OPTIONS; ++i) {
         window.draw(menuOptions[i]);
     }
@@ -137,7 +134,7 @@ void MainMenu::MoveUp(int max){
         if (interfaceSelected == -1) {
             interfaceSelected = max;
         }
-        
+
         optionChosen.setPosition(160, menuOptions[interfaceSelected].getPosition().y);
         menuOptions[interfaceSelected].setFillColor(sf::Color::White);
         menuOptions[interfaceSelected].setOutlineThickness(1.5f);
@@ -162,6 +159,5 @@ void MainMenu::MoveDown(int max){
                 optionChosen.setPosition(160, menuOptions[interfaceSelected].getPosition().y);
         menuOptions[interfaceSelected].setFillColor(sf::Color::White);
         menuOptions[interfaceSelected].setOutlineThickness(1.5f);
-        
     }
 }

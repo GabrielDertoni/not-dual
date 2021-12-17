@@ -31,12 +31,12 @@ static std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> drawQueue
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
 
-void switchWindow(int x, sf::RenderWindow &gameMenu);
+void mainMenu(bool showGameOverText);
 
 void gameLoop() {
     while (!done) {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
-        if (done)break;
+        if (done) break;
 
         for (auto& [id, obj] : GameObject::getGameObjects()) {
             obj->update();
@@ -45,10 +45,10 @@ void gameLoop() {
         // Destruction MUST HAPPEN BEFORE instantiation.
         GameObject::destroyAllMarked();
         GameObject::instantiateAllMarked();
-        
+
         bool player1Alive = false;
         bool player2Alive = false;
-        
+
         for (auto [id, obj] : GameObject::getGameObjects()) {
             if(obj->getTag() == "Player1"){
                 player1Alive = true;
@@ -83,62 +83,11 @@ void populateEventQueue(sf::RenderWindow& window) {
     }
 }
 
-
-// Builds gameOver screen
-void gameOver(){
-
+void playGame(){
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
-    sf::RenderWindow gameOverScreen(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
-    MainMenu mainMenu(gameOverScreen.getSize().x, gameOverScreen.getSize().y,2);
-
-    while (gameOverScreen.isOpen()){
-        sf::Event event;
-        while (gameOverScreen.pollEvent(event))
-        {
-            // Close the window
-            if (event.type == sf::Event::Closed){
-                gameOverScreen.close();
-            }
-
-            // Check for key events
-            if (event.type == sf::Event::KeyReleased){
-                // Treat all valid key events for GUI interactions
-                switch (event.key.code){
-                // Move Up
-                case sf::Keyboard::Up:
-                case sf::Keyboard::W:
-                    mainMenu.MoveUp(3);
-                    break;
-                
-                // Move Down
-                case sf::Keyboard::Down:
-                case sf::Keyboard::S:
-                    mainMenu.MoveDown(3);
-                    break;
-
-                // Select option
-                case sf::Keyboard::Return:
-                case sf::Keyboard::Space:
-                    // Building other windows
-                    switchWindow(mainMenu.InterfacePressed(), gameOverScreen);
-                    break;
-
-                default:
-                    break;
-                }
-              
-            }
-        }
-
-        gameOverScreen.clear(sf::Color(49,21,58));
-        mainMenu.draw(gameOverScreen);
-        gameOverScreen.display();
-    }
-}
-
-void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::RenderWindow& gameMenu){
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
 
     window.setKeyRepeatEnabled(false);
 
@@ -165,17 +114,16 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::Render
         .addComponent<RectangleRenderer>(sf::Vector2f(2, HEIGHT))
         .registerGameObject();
 
-    GameObjectBuilder(Transform(sf::Vector2f(250, HEIGHT / 2), 0))
-        .addComponent<PowerSpawner>()
-        .registerGameObject();
-    GameObjectBuilder(Transform(sf::Vector2f(450, HEIGHT / 2), 0))
-        .addComponent<PowerSpawner>()
-        .registerGameObject();
+    // GameObjectBuilder(Transform(sf::Vector2f(250, HEIGHT / 2), 0))
+    //     .addComponent<PowerSpawner>()
+    //     .registerGameObject();
+    // GameObjectBuilder(Transform(sf::Vector2f(450, HEIGHT / 2), 0))
+    //     .addComponent<PowerSpawner>()
+    //     .registerGameObject();
 
     sf::Texture bg;
     bg.loadFromFile(BG_PATH);
     sf::Sprite bgSprite(bg);
-
 
     std::thread gameThread(gameLoop);
 
@@ -196,8 +144,7 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::Render
             window.draw(*drawable, states);
             drawQueue.pop_front();
         }
-        howToPlay.close();
-        gameMenu.close();
+
         window.display();
 
         // Game loop ends
@@ -222,28 +169,24 @@ void startGame(sf::RenderWindow& window, sf::RenderWindow& howToPlay, sf::Render
         Timestamp frameEnd = getNow();
         deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
         if (deltaTime < frameTimeBudget) {
-            std::this_thread::sleep_for(frameTimeBudget - deltaTime);
+            // std::this_thread::sleep_for(frameTimeBudget - deltaTime);
         }
     }
+    done = true;
     gameLoopStart.release();
     gameThread.join();
-    
+
     if(gameIsOver){
-        gameOver();
+        mainMenu(true);
     }
-    
 }
 
-
-void switchWindow(int x, sf::RenderWindow &gameMenu){
-
+void howToPlay() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    
-    // Game window    
-    sf::RenderWindow playGame(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
-    sf::RenderWindow howToPlay(sf::VideoMode(WIDTH, HEIGHT), "How to play", sf::Style::Default, settings);
 
+    // Game window
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "How to play", sf::Style::Default, settings);
 
     // How to play UI objects
     sf::Texture howToPlayTexture;
@@ -251,74 +194,45 @@ void switchWindow(int x, sf::RenderWindow &gameMenu){
     howToPlayTexture.setRepeated(true);
     sf::Sprite howToPlaySprite(howToPlayTexture);
 
-    switch (x)
+    while (window.isOpen())
     {
-
-        // Switch to playGame
-        case 0:
-            startGame(playGame, howToPlay, gameMenu);
-            break;
-        
-        // Switch to howToPlay
-        case 1:
-            while (howToPlay.isOpen())
-            {
-                sf::Event aEvent;
-                while (howToPlay.pollEvent(aEvent)){
-                    if (aEvent.type == sf::Event::Closed){
-                        howToPlay.close();
-                    }
-                    if (aEvent.type == sf::Event::KeyPressed){
-                        if (aEvent.key.code == sf::Keyboard::Escape){
-                            howToPlay.close();
-                        }
-                    }   
-
-                }
-
-                playGame.close();
-                howToPlay.clear(sf::Color(49,21,58));
-                howToPlay.draw(howToPlaySprite);
-                howToPlay.display();
+        sf::Event aEvent;
+        while (window.pollEvent(aEvent)){
+            if (aEvent.type == sf::Event::Closed){
+                window.close();
             }
-            break;
+            if (aEvent.type == sf::Event::KeyPressed && aEvent.key.code == sf::Keyboard::Escape){
+                // FIXME: This should work!
+                // window.close();
+            }
+        }
 
-
-        // Quit game
-        case 2:
-            gameMenu.close();
-            break;
-
-
-    default:
-        break;
+        window.clear(sf::Color(49,21,58));
+        window.draw(howToPlaySprite);
+        window.display();
     }
 }
 
-
-
-int main() {
-
+void mainMenu(bool showGameOverText) {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
     // Building the Main Menu window
-    sf::RenderWindow gameMenu(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
-    MainMenu mainMenu(gameMenu.getSize().x, gameMenu.getSize().y,1);
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
+    MainMenu mainMenu(window.getSize().x, window.getSize().y, showGameOverText + 1);
 
     // Setting the window icon
     sf::Image icon;
     icon.loadFromFile("resources/icon.png");
-    gameMenu.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+    window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
-
-    while (gameMenu.isOpen()){
+    while (window.isOpen()){
         sf::Event event;
-        while (gameMenu.pollEvent(event))
+        while (window.pollEvent(event))
         {
             // Close the window
             if (event.type == sf::Event::Closed){
-                gameMenu.close();
+                window.close();
             }
 
             // Check for key events
@@ -330,7 +244,7 @@ int main() {
                 case sf::Keyboard::W:
                     mainMenu.MoveUp(3);
                     break;
-                
+
                 // Move Down
                 case sf::Keyboard::Down:
                 case sf::Keyboard::S:
@@ -340,22 +254,34 @@ int main() {
                 // Select option
                 case sf::Keyboard::Return:
                 case sf::Keyboard::Space:
-                    // Building other windows
-                    switchWindow(mainMenu.InterfacePressed(), gameMenu);
+                {
+                    int opt = mainMenu.InterfacePressed();
+                    if (opt == 0) {
+                        window.close();
+                        playGame();
+                    } else if (opt == 1) {
+                        howToPlay();
+                    } else {
+                        window.close();
+                    }
                     break;
+                }
 
                 default:
                     break;
                 }
-              
             }
         }
 
-        gameMenu.clear(sf::Color(49,21,58));
-        mainMenu.draw(gameMenu);
-        gameMenu.display();
+        window.clear(sf::Color(49,21,58));
+        mainMenu.draw(window);
+        window.display();
     }
+}
 
 
+
+int main() {
+    mainMenu(0);
     return 0;
 }

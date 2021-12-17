@@ -23,14 +23,16 @@ void RectangleRenderer::setColor(sf::Color color) {
 }
 
 SpriteRenderer::SpriteRenderer(std::string texturePath) {
-    texture.loadFromFile(texturePath);
-    sprite.setTexture(texture);
+    texture = new sf::Texture();
+    texture->loadFromFile(texturePath);
+    sprite.setTexture(*texture);
 }
 
 SpriteRenderer::SpriteRenderer(const SpriteRenderer& other) :
-    texture(other.texture),
-    sprite(other.texture)
-{}
+    texture(other.texture)
+{
+    sprite.setTexture(*texture);
+}
 
 void SpriteRenderer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(sprite, states);
