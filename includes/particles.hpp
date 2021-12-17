@@ -19,7 +19,6 @@ private:
     sf::Color color;
     int ttl;
     float vanishRate;
-    float lerp;
     Timestamp created;
 
     virtual void initialize(GameObject& gameObject);

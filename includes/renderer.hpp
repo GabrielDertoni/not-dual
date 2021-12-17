@@ -48,7 +48,9 @@ public:
 
 private:
     sf::Transform localTransform;
-    sf::Texture* texture;
+
+    // Coping textures is painfully expensive, so use a shared pointer to the resource.
+    std::shared_ptr<sf::Texture> texture;
     sf::Sprite  sprite;
 };
 
