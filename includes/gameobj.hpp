@@ -126,6 +126,7 @@ private:
 public:
     static std::unordered_map<std::string, std::shared_ptr<GameObject>>& getGameObjects();
     static void addGameObject(GameObject gameObject);
+    static void destroyAllInstances();
     static void markForDestruction(std::string id);
     static void destroyAllMarked();
     static void instantiateAllMarked();

@@ -143,6 +143,10 @@ std::unordered_map<std::string, std::shared_ptr<GameObject>> GameObject::instanc
 std::deque<std::string> GameObject::destroyQueue;
 std::deque<std::shared_ptr<GameObject>> GameObject::instantiateQueue;
 
+void GameObject::destroyAllInstances(){
+    instances.clear();
+}
+
 void GameObject::markForDestruction(std::string id) {
     destroyQueue.push_back(id);
 }

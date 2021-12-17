@@ -31,9 +31,12 @@ static std::deque<std::pair<sf::Transform, std::unique_ptr<Renderer>>> drawQueue
 static const sf::Vector2f leftPlayerStartPos = sf::Vector2f(100, HEIGHT / 2);
 static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT / 2);
 
-void mainMenu(bool showGameOverText);
+void menuScreen(bool showGameOverText);
 
 void gameLoop() {
+    
+    gameIsOver = false;
+
     while (!done) {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
@@ -183,8 +186,10 @@ void playGame(){
     gameThread.join();
 
     if(gameIsOver){
-        mainMenu(true);
+        GameObject::destroyAllInstances();
+        menuScreen(true);
     }
+
 }
 
 void howToPlay() {
@@ -208,8 +213,7 @@ void howToPlay() {
                 window.close();
             }
             if (aEvent.type == sf::Event::KeyPressed && aEvent.key.code == sf::Keyboard::Escape){
-                // FIXME: This should work!
-                // window.close();
+                window.close();
             }
         }
 
@@ -219,13 +223,13 @@ void howToPlay() {
     }
 }
 
-void mainMenu(bool showGameOverText) {
+void menuScreen(bool showGameOverText) {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
     // Building the Main Menu window
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Not-Dual", sf::Style::Default, settings);
-    MainMenu mainMenu(window.getSize().x, window.getSize().y, showGameOverText + 1);
+    MainMenu mainMenu(window.getSize().x, window.getSize().y, showGameOverText);
 
     // Setting the window icon
     sf::Image icon;
@@ -266,7 +270,12 @@ void mainMenu(bool showGameOverText) {
                         window.close();
                         playGame();
                     } else if (opt == 1) {
-                        howToPlay();
+                        if(showGameOverText){
+                            window.close();
+                            menuScreen(false);
+                        }
+                        else
+                            howToPlay();
                     } else {
                         window.close();
                     }
@@ -288,6 +297,6 @@ void mainMenu(bool showGameOverText) {
 
 
 int main() {
-    mainMenu(0);
+    menuScreen(0);
     return 0;
 }
