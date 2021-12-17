@@ -58,15 +58,13 @@ void ParticleEmitter::update(GameObject& gameObject) {
 Particle::Particle(sf::Color color, int ttl, float vanishRate) :
     color(color),
     ttl(ttl),
-    vanishRate(vanishRate),
-    lerp(0)
+    vanishRate(vanishRate)
 {}
 
 Particle::Particle(const Particle& other) :
     color(other.color),
     ttl(other.ttl),
-    vanishRate(other.vanishRate),
-    lerp(other.lerp)
+    vanishRate(other.vanishRate)
 {}
 
 void Particle::initialize(GameObject& gameObject) {
@@ -78,6 +76,4 @@ void Particle::update(GameObject& gameObject) {
     if (now - created >= std::chrono::milliseconds(ttl)) {
         gameObject.destroy();
     }
-
-    lerp = lerp + vanishRate > 1 ? 1 : lerp + vanishRate;
 }
