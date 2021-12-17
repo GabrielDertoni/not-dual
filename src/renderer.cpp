@@ -29,7 +29,7 @@ SpriteRenderer::SpriteRenderer(std::string texturePath) :
 SpriteRenderer::SpriteRenderer(std::string texturePath, sf::Transform localTransform) :
     localTransform(localTransform)
 {
-    texture = new sf::Texture();
+    texture = std::make_shared<sf::Texture>();
     texture->loadFromFile(texturePath);
     sprite.setTexture(*texture);
 }

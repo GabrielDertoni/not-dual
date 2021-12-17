@@ -137,6 +137,16 @@ void playGame(){
 
     while (window.isOpen()) {
         Timestamp frameStart = getNow();
+
+        // Push stuff to the draw queue
+        for (auto [id, obj] : GameObject::getGameObjects()) {
+            if (obj->hasComponent<Renderer>()) {
+                std::unique_ptr<Component> comp = obj->getComponent<Renderer>().clone();
+                std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
+                drawQueue.push_back(std::make_pair(obj->transform.getTransformMatrix(), std::move(renderer)));
+            }
+        }
+
         // Game loop starts
         gameLoopStart.release();
 
@@ -159,15 +169,6 @@ void playGame(){
         if (done || gameIsOver) {
             window.close();
             break;
-        }
-
-        // Push stuff to the draw queue
-        for (auto [id, obj] : GameObject::getGameObjects()) {
-            if (obj->hasComponent<Renderer>()) {
-                std::unique_ptr<Component> comp = obj->getComponent<Renderer>().clone();
-                std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
-                drawQueue.push_back(std::make_pair(obj->transform.getTransformMatrix(), std::move(renderer)));
-            }
         }
 
         populateEventQueue(window);
