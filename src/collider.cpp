@@ -9,7 +9,7 @@ BoxCollider::BoxCollider(const BoxCollider& other) :
     BoxCollider(other.leftTop, other.rightBottom)
 {}
 
-bool BoxCollider::intersects(BoxCollider& other) const {
+bool BoxCollider::intersects(const BoxCollider& other) const {
     float maxX = std::min(gRightBottom.x, other.gRightBottom.x);
     float minX = std::max(gLeftTop.x, other.gLeftTop.x);
     float maxY = std::min(gRightBottom.y, other.gLeftTop.y);

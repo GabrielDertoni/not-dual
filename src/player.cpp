@@ -144,54 +144,39 @@ void Player::update(GameObject& gameObject) {
     }
     rb.velocity = res;
 
-    auto isBulletHit = [&](std::shared_ptr<GameObject> obj) {
-        return obj->hasComponent<Bullet>()
-            && obj->getTag() != gameObject.getTag()
-            && collider.intersects(obj->getComponent<BoxCollider>());
+    auto removeSelf = [&](std::pair<const std::string, GameObjectHandle>& pair) {
+        return pair.first != gameObject.getUUID();
     };
 
-    // SpaceshipRenderer& renderer = gameObject.getComponent<SpaceshipRenderer>();
+    auto isBulletHit = [&](GameObjectHandle& obj) {
+        return obj->hasComponent<Bullet>()
+            && obj->getTag() != gameObject.getTag()
+            && collider.intersects(obj->getConstComponent<BoxCollider>());
+    };
 
     for (auto& bullet : GameObject::getGameObjects()
+                      | views::filter(removeSelf)
                       | views::values
                       | views::filter(isBulletHit))
     {
-        Bullet& behaviour = bullet->getComponent<Bullet>();
+        const Bullet& behaviour = bullet->getConstComponent<Bullet>();
         life -= behaviour.isSuper ? SUPER_BULLET_DAMAGE : BULLET_DAMAGE;
         bullet->destroy();
-
-        // renderer.changeToDamage();
-
-        // for (int i = 0; i < BLOOD_N_PARTICLES; i++) {
-        //     float ang = 2 * M_PI * (float)(rand() % 100) / 100;
-        //     sf::Vector2f dir(cos(ang), sin(ang));
-        //     GameObjectBuilder(gameObject.transform)
-        //         .addComponent<Particle>(renderer.getColor(), BLOOD_PARTICLE_TTL, 0.01)
-        //         .addComponentFrom([&] {
-        //             RigidBody rb(1.0f);
-        //             float impulse = BLOOD_PARTICLE_IMPULSE * (0.2 + (float)(rand() % 100) / 100.0);
-        //             rb.applyForce(dir * impulse);
-        //             rb.setGravity(sf::Vector2f(0, 0.5f));
-        //             return rb;
-        //         })
-        //         .addComponent<RectangleRenderer>(sf::Vector2f(BLOOD_PARTICLE_SIZE, BLOOD_PARTICLE_SIZE))
-        //         .registerGameObject();
-        // }
     }
 
-    auto playerGetsPower = [&](std::shared_ptr<GameObject>& obj) {
+    auto playerGetsPower = [&](GameObjectHandle& obj) {
         return obj->hasComponent<SuperPower>()
-            && collider.intersects(obj->getComponent<BoxCollider>());
+            && collider.intersects(obj->getConstComponent<BoxCollider>());
     };
 
     for (auto& superPower : GameObject::getGameObjects()
+                          | views::filter(removeSelf)
                           | views::values
                           | views::filter(playerGetsPower))
     {
         hasPower = true;
         superPower->destroy();
     }
-
 
     if (life <= 0) {
         gameObject.destroy();

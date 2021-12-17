@@ -47,7 +47,7 @@ GameObject::GameObject(Transform transform) :
 // Copy constructor.
 GameObject::GameObject(const GameObject& other) :
     transform(other.transform),
-    shouldBeDestroyed(other.shouldBeDestroyed)
+    shouldBeDestroyed(other.shouldBeDestroyed.load())
 {
     setTag(other.getTag());
     uuid = uuid::generate_uuid_v4();
@@ -59,7 +59,7 @@ GameObject::GameObject(const GameObject& other) :
 
 GameObject::GameObject(GameObject&& other) :
     transform(other.transform),
-    shouldBeDestroyed(other.shouldBeDestroyed)
+    shouldBeDestroyed(other.shouldBeDestroyed.load())
 {
     tag = std::move(other.tag);
     uuid = std::move(other.uuid);
@@ -68,15 +68,15 @@ GameObject::GameObject(GameObject&& other) :
 
 GameObject& GameObject::operator=(GameObject &&other) {
     transform = other.transform;
-    shouldBeDestroyed = other.shouldBeDestroyed;
+    shouldBeDestroyed = other.shouldBeDestroyed.load();
     tag = std::move(other.tag);
     uuid = std::move(other.uuid);
     components = std::move(other.components);
     return *this;
 }
 
-void GameObject::destroy() {
-    shouldBeDestroyed = true;
+void GameObject::destroy() const {
+    ((GameObject*)this)->shouldBeDestroyed = true;
 }
 
 void GameObject::initialize() {
@@ -138,9 +138,10 @@ Component::Component() {}
 
 /* Static stuff */
 
-// std::vector<GameObject> GameObject::instances;
-std::unordered_map<std::string, std::shared_ptr<GameObject>> GameObject::instances;
+std::map<std::string, GameObjectHandle> GameObject::instances;
+std::mutex GameObject::destroyQueueLock;
 std::deque<std::string> GameObject::destroyQueue;
+std::mutex GameObject::instantiateQueueLock;
 std::deque<std::shared_ptr<GameObject>> GameObject::instantiateQueue;
 
 void GameObject::destroyAllInstances(){
@@ -148,6 +149,7 @@ void GameObject::destroyAllInstances(){
 }
 
 void GameObject::markForDestruction(std::string id) {
+    std::unique_lock lock(destroyQueueLock);
     destroyQueue.push_back(id);
 }
 
@@ -166,17 +168,18 @@ void GameObject::destroyAllMarked() {
 void GameObject::instantiateAllMarked() {
     while (!instantiateQueue.empty()) {
         std::string uuid = instantiateQueue.front()->getUUID();
-        auto [it, ok] = instances.insert(std::make_pair(uuid, std::move(instantiateQueue.front())));
+        auto [it, ok] = instances.emplace(uuid, std::move(instantiateQueue.front()));
 
         if (!ok) {
             throw std::runtime_error("unable to insert GameObject, UUID already present");
         }
         instantiateQueue.pop_front();
-        it->second->initialize();
+        it->second.acquire()->initialize();
     }
 }
 
 void GameObject::addGameObject(GameObject gameObject) {
+    std::unique_lock lock(instantiateQueueLock);
     instantiateQueue.push_back(std::make_shared<GameObject>(std::move(gameObject)));
 }
 
@@ -184,7 +187,7 @@ void GameObject::addComponentUnique(std::unique_ptr<Component> component) {
     components.push_back(std::move(component));
 }
 
-std::unordered_map<std::string, std::shared_ptr<GameObject>>& GameObject::getGameObjects() {
+std::map<std::string, GameObjectHandle>& GameObject::getGameObjects() {
     return instances;
 }
 
@@ -224,4 +227,56 @@ GameObject GameObjectBuilder::build() {
 
 void GameObjectBuilder::registerGameObject() {
     GameObject::addGameObject(build());
+}
+
+/* GameObjectHandle */
+
+GameObjectHandle::GameObjectHandle(std::shared_ptr<GameObject> gameObject) :
+    gameObject(gameObject)
+{}
+
+GameObjectHandle::GameObjectHandle(GameObject&& gameObject) :
+    GameObjectHandle(std::make_unique<GameObject>(std::move(gameObject)))
+{}
+
+GameObjectWriteGuard GameObjectHandle::acquire() {
+    std::unique_lock<std::mutex> guard(sharedPtrLock);
+    // Only use the copy constructor once locked.
+    std::shared_ptr<GameObject> ptr = gameObject;
+    return GameObjectWriteGuard(std::unique_lock<std::mutex>(writeLock), std::move(ptr));
+}
+
+GameObjectGuard GameObjectHandle::operator->() {
+    std::unique_lock<std::mutex> guard(sharedPtrLock);
+    // Only use the copy constructor once locked.
+    std::shared_ptr<GameObject> ptr = gameObject;
+    return GameObjectGuard(std::move(gameObject));
+}
+
+/* GameObjectWriteGuard */
+
+GameObjectWriteGuard::GameObjectWriteGuard(std::unique_lock<std::mutex>&& guard, std::shared_ptr<GameObject>&& gameObject) :
+    guard(std::move(guard)),
+    gameObject(gameObject)
+{}
+
+GameObjectWriteGuard::~GameObjectWriteGuard() {
+    gameObject = nullptr;
+    guard.unlock();
+}
+
+GameObject* GameObjectWriteGuard::operator->() {
+    // This is ok because we know the mutex is locked
+    return gameObject.get();
+}
+
+/* GameObjectGuard */
+
+GameObjectGuard::GameObjectGuard(std::shared_ptr<GameObject>&& gameObject) :
+    gameObject(gameObject)
+{}
+
+const GameObject* GameObjectGuard::operator->() {
+    // This is ok because we only give out an immutable pointer.
+    return gameObject.get();
 }

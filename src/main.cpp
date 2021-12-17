@@ -3,6 +3,7 @@
 #include <thread>
 #include <memory>
 #include <chrono>
+#include <mutex>
 #include <deque>
 #include <list>
 
@@ -23,6 +24,7 @@ static std::chrono::duration deltaTime = std::chrono::milliseconds(17);
 
 std::binary_semaphore gameLoopStart(0);
 std::binary_semaphore gameLoopDone(0);
+std::mutex gameObjIteratorLock;
 
 static bool done;
 static bool gameIsOver = false;
@@ -33,16 +35,40 @@ static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT
 
 void menuScreen(bool showGameOverText);
 
+typedef std::map<std::string, GameObjectHandle>::iterator GameObjectIterator;
+
+void updateWorkerThread(std::mutex& itLock, GameObjectIterator& it, const GameObjectIterator& end) {
+    while (true) {
+        std::unique_lock lock(itLock);
+        if (it == end) break;
+        GameObjectHandle& handle = (it++)->second;
+        lock.unlock();
+
+        handle.acquire()->update();
+    }
+}
+
 void gameLoop() {
-    
     gameIsOver = false;
+
+    std::vector<std::thread> pool;
+
+    std::mutex itLock;
 
     while (!done) {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        for (auto& [id, obj] : GameObject::getGameObjects()) {
-            obj->update();
+        size_t numThreads = std::thread::hardware_concurrency();
+
+        GameObjectIterator it = GameObject::getGameObjects().begin();
+        GameObjectIterator end = GameObject::getGameObjects().end();
+        for (size_t i = 0; i < numThreads; i++) {
+            pool.push_back(std::thread(updateWorkerThread, std::ref(itLock), std::ref(it), std::cref(end)));
+        }
+
+        for (auto& thread : pool) {
+            if (thread.joinable()) thread.join();
         }
 
         // Destruction MUST HAPPEN BEFORE instantiation.
@@ -52,12 +78,12 @@ void gameLoop() {
         bool player1Alive = false;
         bool player2Alive = false;
 
-        for (auto [id, obj] : GameObject::getGameObjects()) {
-            if(obj->getTag() == "Player1"){
+        for (auto& [id, handle] : GameObject::getGameObjects()) {
+            if(handle->getTag() == "Player1"){
                 player1Alive = true;
             }
 
-            if(obj->getTag() == "Player2"){
+            if(handle->getTag() == "Player2"){
                 player2Alive = true;
             }
         }
@@ -142,11 +168,11 @@ void playGame(){
         Timestamp frameStart = getNow();
 
         // Push stuff to the draw queue
-        for (auto [id, obj] : GameObject::getGameObjects()) {
-            if (obj->hasComponent<Renderer>()) {
-                std::unique_ptr<Component> comp = obj->getComponent<Renderer>().clone();
+        for (auto& [id, handle] : GameObject::getGameObjects()) {
+            if (handle->hasComponent<Renderer>()) {
+                std::unique_ptr<Component> comp = handle->getConstComponent<Renderer>().clone();
                 std::unique_ptr<Renderer> renderer(dynamic_cast<Renderer*>(comp.release()));
-                drawQueue.push_back(std::make_pair(obj->transform.getTransformMatrix(), std::move(renderer)));
+                drawQueue.push_back(std::make_pair(handle->transform.getTransformMatrix(), std::move(renderer)));
             }
         }
 

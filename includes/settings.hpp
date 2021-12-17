@@ -4,6 +4,8 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
+#define THREAD_POOL_SIZE 10
+
 #define WIDTH  640
 #define HEIGHT 480
 

@@ -8,8 +8,10 @@
 #include <deque>
 #include <list>
 #include <memory>
+#include <mutex>
+#include <atomic>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 #include <SFML/Graphics/Transform.hpp>
 #include <SFML/Graphics/Drawable.hpp>
@@ -86,7 +88,10 @@ public:
 
     GameObject& operator=(GameObject &&other);
 
-    void destroy();
+    // This `const` is a little lie. It actually DOES mutate the class, but it
+    // uses an atomic, so operations are thread safe. We really just care about
+    // cost because of race conditions anyway.
+    void destroy() const;
     void initialize();
     void update();
 
@@ -108,23 +113,27 @@ public:
     void addComponentUnique(std::unique_ptr<Component> component);
 
     template <class T>
+    const T& getConstComponent() const
+        requires std::is_base_of_v<Component, T>;
+
+    template <class T>
     T& getComponent()
         requires std::is_base_of_v<Component, T>;
 
     template <class T>
-    bool hasComponent()
+    bool hasComponent() const
         requires std::is_base_of_v<Component, T>;
 
 private:
     std::string tag;
-    bool shouldBeDestroyed;
+    std::atomic<bool> shouldBeDestroyed;
     std::vector<std::unique_ptr<Component>> components;
     std::string uuid;
 
     friend GameObject GameObjectBuilder::build();
 
 public:
-    static std::unordered_map<std::string, std::shared_ptr<GameObject>>& getGameObjects();
+    static std::map<std::string, class GameObjectHandle>& getGameObjects();
     static void addGameObject(GameObject gameObject);
     static void destroyAllInstances();
     static void markForDestruction(std::string id);
@@ -132,13 +141,14 @@ public:
     static void instantiateAllMarked();
 
 private:
-    // static std::vector<GameObject> instances;
-    static std::unordered_map<std::string, std::shared_ptr<GameObject>> instances;
+    static std::map<std::string, class GameObjectHandle> instances;
 
     // A list of GameObject IDs to be destroyed by the end of the frame.
+    static std::mutex destroyQueueLock;
     static std::deque<std::string> destroyQueue;
 
     // A list of GameObjects to be instanciated by the end of the frame.
+    static std::mutex instantiateQueueLock;
     static std::deque<std::shared_ptr<GameObject>> instantiateQueue;
 };
 
@@ -151,7 +161,71 @@ protected:
     friend void GameObject::update();
 };
 
+// RAII Guard that prevents multiple references to the same GameObject.
+// NOTE: It is a logic error to store a reference to inside the GameObject
+// without having the guard. For instance:
+//
+// ```c++
+// Renderer& undefinedBehaviour(GameObjectHandle& handle) {
+//      GameObjectGuard guard = handle.acquire();
+//      return guard->getComponent<Renderer>();
+// }
+// ```
+//
+// is undefined behavior because the reference `Renderer&` which points to
+// inside the game object is still alive when the guard is destroyed and thus
+// one could have two references to inside the same GameObject, which is
+// undefined.
+//
+class GameObjectWriteGuard {
+public:
+    GameObject* operator->();
+
+    ~GameObjectWriteGuard();
+
+private:
+    friend class GameObjectHandle;
+
+    GameObjectWriteGuard(std::unique_lock<std::mutex>&& guard, std::shared_ptr<GameObject>&& gameObject);
+
+    std::unique_lock<std::mutex> guard;
+    std::shared_ptr<GameObject> gameObject;
+};
+
+class GameObjectGuard {
+public:
+    const GameObject* operator->();
+
+private:
+    friend class GameObjectHandle;
+
+    GameObjectGuard(std::shared_ptr<GameObject>&& gameObject);
+
+    std::shared_ptr<GameObject> gameObject;
+};
+
+class GameObjectHandle {
+public:
+    GameObjectHandle(GameObject&& gameObject);
+    GameObjectHandle(std::shared_ptr<GameObject> gameObject);
+
+    GameObjectWriteGuard acquire();
+    GameObjectGuard operator->();
+
+private:
+    std::mutex writeLock;
+    std::mutex sharedPtrLock;
+    std::shared_ptr<GameObject> gameObject;
+};
+
 /* Implementation of generic functions */
+
+template <class T>
+const T& GameObject::getConstComponent() const
+    requires std::is_base_of_v<Component, T>
+{
+    return ((GameObject*)this)->getComponent<T>();
+}
 
 template <class T>
 T& GameObject::getComponent()
@@ -169,7 +243,7 @@ T& GameObject::getComponent()
 }
 
 template <class T>
-bool GameObject::hasComponent()
+bool GameObject::hasComponent() const
     requires std::is_base_of_v<Component, T>
 {
     for (auto& component : components) {
