@@ -67,7 +67,10 @@ public:
         requires std::is_invocable_v<F, Transform>
               && std::is_same_v<Transform, std::invoke_result_t<F, Transform>>;
 
-    GameObjectBuilder copy();
+    template <typename T, typename F>
+    GameObjectBuilder& updateComponent(F fn)
+        requires std::is_invocable_v<F, T&>;
+
     GameObject build();
     void registerGameObject();
 
@@ -288,7 +291,6 @@ GameObjectBuilder& GameObjectBuilder::addComponentFrom(F getComponent)
     return *this;
 }
 
-
 template <typename F>
 GameObjectBuilder& GameObjectBuilder::mapTransform(F fn)
     requires std::is_invocable_v<F, Transform>
@@ -296,6 +298,24 @@ GameObjectBuilder& GameObjectBuilder::mapTransform(F fn)
 {
     this->transform = fn((Transform&)transform);
     return *this;
+}
+
+template <typename T, typename F>
+GameObjectBuilder& GameObjectBuilder::updateComponent(F fn)
+    requires std::is_invocable_v<F, T&>
+{
+    for (auto& component : components) {
+        T* ptr = dynamic_cast<T*>(component.get());
+        if (ptr != nullptr) {
+            fn(std::ref(*ptr));
+            return *this;
+        }
+    }
+
+    std::stringstream s;
+    const std::type_info& id = typeid(T);
+    s << "Component " << id.name() << " not found in GameObjectBuilder";
+    throw std::runtime_error(std::move(s.str()));
 }
 
 

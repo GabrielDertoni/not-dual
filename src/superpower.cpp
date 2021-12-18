@@ -32,7 +32,7 @@ void PowerSpawner::update(GameObject& gameObject) {
     if (now - *lastPower >= SUPER_POWER_INTERVAL) {
         GameObjectBuilder(gameObject.transform)
             .addComponent<SuperPower>()
-            .addComponent<ParticleEmitter>(10, 100, 2.0f)
+            .addComponent<ParticleEmitter>(500, 100, 2.0f)
             .addComponent<BoxCollider>(sf::Vector2f(POWER_SIZE, POWER_SIZE))
             .addComponent<SpriteRenderer>(SB_PATH)
             .registerGameObject();

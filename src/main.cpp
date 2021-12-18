@@ -4,7 +4,11 @@
 #include <memory>
 #include <chrono>
 #include <mutex>
+#include <condition_variable>
+#include <functional>
+#include <ranges>
 #include <deque>
+#include <atomic>
 #include <list>
 
 #include <SFML/Graphics.hpp>
@@ -35,16 +39,25 @@ static const sf::Vector2f rightPlayerStartPos = sf::Vector2f(WIDTH - 100, HEIGHT
 
 void menuScreen(bool showGameOverText);
 
-typedef std::map<std::string, GameObjectHandle>::iterator GameObjectIterator;
+std::counting_semaphore workersDone(0);
+std::atomic<size_t> workersActive(0);
 
-void updateWorkerThread(std::mutex& itLock, GameObjectIterator& it, const GameObjectIterator& end) {
+void updateWorkerThread(
+    std::mutex& queueLock,
+    std::condition_variable& cv,
+    std::deque<std::reference_wrapper<GameObjectHandle>>& objQueue
+) {
     while (true) {
-        std::unique_lock lock(itLock);
-        if (it == end) break;
-        GameObjectHandle& handle = (it++)->second;
+        std::unique_lock lock(queueLock);
+        cv.wait(lock, [&]{return !objQueue.empty();});
+        workersActive++;
+        GameObjectHandle& handle = objQueue.front();
+        objQueue.pop_front();
         lock.unlock();
 
         handle.acquire()->update();
+        workersActive--;
+        workersDone.release();
     }
 }
 
@@ -53,22 +66,36 @@ void gameLoop() {
 
     std::vector<std::thread> pool;
 
-    std::mutex itLock;
+    std::mutex queueLock;
+    std::condition_variable objEnqueuedCv;
+    // std::condition_variable objProcessedCv;
+    std::deque<std::reference_wrapper<GameObjectHandle>> objQueue;
+
+    // size_t numThreads = std::thread::hardware_concurrency();
+    size_t numThreads = 1;
+    for (size_t i = 0; i < numThreads; i++) {
+        pool.push_back(std::thread(updateWorkerThread, std::ref(queueLock),
+                                   std::ref(objEnqueuedCv), std::ref(objQueue)));
+    }
 
     while (!done) {
         while (!gameLoopStart.try_acquire_for(frameTimeBudget) && !done);
         if (done) break;
 
-        size_t numThreads = std::thread::hardware_concurrency();
+        size_t todos = GameObject::getGameObjects().size();
 
-        GameObjectIterator it = GameObject::getGameObjects().begin();
-        GameObjectIterator end = GameObject::getGameObjects().end();
-        for (size_t i = 0; i < numThreads; i++) {
-            pool.push_back(std::thread(updateWorkerThread, std::ref(itLock), std::ref(it), std::cref(end)));
+        for (GameObjectHandle& handle : GameObject::getGameObjects() | std::views::values) {
+            std::unique_lock<std::mutex> lock(queueLock);
+            objQueue.push_back(handle);
+        }
+        objEnqueuedCv.notify_all();
+
+        for (size_t i = 0; i < todos; i++) {
+            workersDone.acquire();
         }
 
-        for (auto& thread : pool) {
-            if (thread.joinable()) thread.join();
+        if (workersActive > 0) {
+            throw std::runtime_error("Worker threads are still active");
         }
 
         // Destruction MUST HAPPEN BEFORE instantiation.

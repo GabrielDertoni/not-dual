@@ -211,10 +211,6 @@ GameObjectBuilder& GameObjectBuilder::withTag(std::string&& tag) {
     return *this;
 }
 
-GameObjectBuilder GameObjectBuilder::copy() {
-    return *this;
-}
-
 GameObject GameObjectBuilder::build() {
     GameObject obj = GameObject(transform);
     obj.tag = tag;

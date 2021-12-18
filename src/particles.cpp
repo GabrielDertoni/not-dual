@@ -30,6 +30,12 @@ void ParticleEmitter::initialize(GameObject& gameObject) {
 void ParticleEmitter::update(GameObject& gameObject) {
     Timestamp now = getNow();
 
+    auto builder = GameObjectBuilder(gameObject.transform);
+    builder
+        .addComponent<SpriteRenderer>(P_PATH)
+        .addComponent<Particle>(sf::Color::Red, 500, 0.01)
+        .addComponent<RigidBody>(1.0f);
+
     if (now - lastEmitted >= std::chrono::milliseconds(emitInterval)) {
         for (int i = 0; i < numEmitAtOnce; i++) {
             float ang = 2 * M_PI * (float)(rand() % 100) / 100;
@@ -39,14 +45,12 @@ void ParticleEmitter::update(GameObject& gameObject) {
                 5 * ((float)(rand() % 100) / 50.0 - 1.0),
                 5 * ((float)(rand() % 100) / 50.0 - 1.0)
             );
-            GameObjectBuilder(transform)
-                .addComponent<Particle>(sf::Color::Red, 500, 0.01)
-                .addComponent<SpriteRenderer>(P_PATH)
-                .addComponentFrom([&] {
-                    RigidBody rb(1.0f);
+            builder
+                .mapTransform([&](Transform t) -> Transform { return transform; })
+                .updateComponent<RigidBody>([&](RigidBody& rb) {
+                    rb.setAcceleration(sf::Vector2f(0, 0));
                     float impulse = avgParticleImpulse * (0.2 + (float)(rand() % 100) / 100.0);
                     rb.applyForce(dir * impulse);
-                    return rb;
                 })
                 .registerGameObject();
         }
