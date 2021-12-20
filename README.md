@@ -2,7 +2,7 @@
 
 O jogo not-dual é um jogo multiplayer local que consiste no confronto entre dois
 jogadores, cada um controlando uma nave diferente através de um conjunto de teclas.
-O objetivo de cada jogador é destruir a nave adversária atirando projéteis.
+O objetivo de cada jogador é destruir a nave adversária atirando projéteis.´
 
 ## Instalando e compilando
 
@@ -98,3 +98,9 @@ UmaClasseAi fazAlgo() {
     return UmaClasseAi();
 }
 ```
+
+## Alunos
+- Gabriel Dertoni - 11795717
+- Guilherme Rios - 11222839
+- Melissa Motoki - 5588687
+- Pedro Monici - 10816732
