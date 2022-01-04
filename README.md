@@ -67,7 +67,7 @@ Foram utilizadas duas threads para o funcionamento do jogo:
 - GameThread que é responsável por tratar toda a lógica que o jogo necessita para funcionar corretamente.
 
 Com tal tipo de implementação, consegue-se otimizar o uso da CPU para realizar as duas coisas
-que o jogo Not-Dual mais precisa, isto é, as atualizações em tempo real de todos os GameObjects (RenderThread)
+que o jogo Not-Dual mais precisa, isto é, as atualizações(renderizações) em tempo real de tudo que ocorre na tela (RenderThread)
 para os players e o tratamento de toda a lógica do jogo (movimento, colisões, super-poderes, dano recebido, etc...)
 para que assim o jogo funcione corretamente (GameThread).
 
